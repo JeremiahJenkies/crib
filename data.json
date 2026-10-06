@@ -6,7 +6,9 @@
     "baseLoss": -24,
     "noKitMultiplier": 1.2,
     "minKitMultiplier": 0.88,
-    "maxKitMultiplier": 1.16
+    "maxKitMultiplier": 1.16,
+    "streakCap": 0.1,
+    "winstreak1v1KitsEnabled": true
   },
   "kits": [
     {
@@ -15,15 +17,17 @@
       "power": 0,
       "tier": "NONE",
       "rpMultiplier": 1.2,
-      "enabled": true
+      "enabled": true,
+      "description": "No kit selected; receives the highest Scrim RP modifier."
     },
     {
       "name": "Barbarian",
       "class": "Fighter",
       "power": 82,
       "tier": "S",
-      "rpMultiplier": 0.94,
-      "enabled": true
+      "rpMultiplier": 0.9376,
+      "enabled": true,
+      "description": "Builds rage through combat and can progress toward the Rageblade."
     },
     {
       "name": "Aery",
@@ -31,31 +35,35 @@
       "power": 80,
       "tier": "S",
       "rpMultiplier": 0.944,
-      "enabled": true
+      "enabled": true,
+      "description": "Collects spirits from defeated enemies that can increase sword damage."
     },
     {
       "name": "Archer",
       "class": "Ranged",
       "power": 72,
       "tier": "A",
-      "rpMultiplier": 0.97,
-      "enabled": true
+      "rpMultiplier": 0.9696,
+      "enabled": true,
+      "description": "Improves ranged combat and projectile pressure."
     },
     {
       "name": "Grim Reaper",
       "class": "Fighter",
       "power": 76,
       "tier": "A",
-      "rpMultiplier": 0.957,
-      "enabled": true
+      "rpMultiplier": 0.9568,
+      "enabled": true,
+      "description": "Uses soul/reaper mechanics for temporary combat advantages."
     },
     {
       "name": "Void Knight",
       "class": "Movement",
       "power": 78,
       "tier": "A",
-      "rpMultiplier": 0.95,
-      "enabled": true
+      "rpMultiplier": 0.9504,
+      "enabled": true,
+      "description": "Void-themed combat and mobility utility."
     },
     {
       "name": "Yuzi",
@@ -63,23 +71,26 @@
       "power": 70,
       "tier": "A",
       "rpMultiplier": 0.976,
-      "enabled": true
+      "enabled": true,
+      "description": "Enhanced mobility and aggressive combat utility."
     },
     {
       "name": "Vulcan",
       "class": "Defender",
       "power": 68,
       "tier": "A",
-      "rpMultiplier": 0.982,
-      "enabled": true
+      "rpMultiplier": 0.9824,
+      "enabled": true,
+      "description": "Remote turret and defensive control utility."
     },
     {
       "name": "Farmer Cletus",
       "class": "Economy",
       "power": 58,
       "tier": "B",
-      "rpMultiplier": 1.014,
-      "enabled": true
+      "rpMultiplier": 1.0144,
+      "enabled": true,
+      "description": "Economy-focused farming advantage."
     },
     {
       "name": "Miner",
@@ -87,23 +98,26 @@
       "power": 55,
       "tier": "B",
       "rpMultiplier": 1.024,
-      "enabled": true
+      "enabled": true,
+      "description": "Mining-focused resource and economy advantage."
     },
     {
       "name": "Melody",
       "class": "Support",
       "power": 46,
       "tier": "C",
-      "rpMultiplier": 1.053,
-      "enabled": true
+      "rpMultiplier": 1.0528,
+      "enabled": true,
+      "description": "Healing and support utility for teammates."
     },
     {
       "name": "Builder",
       "class": "Defender",
       "power": 43,
       "tier": "C",
-      "rpMultiplier": 1.062,
-      "enabled": true
+      "rpMultiplier": 1.0624,
+      "enabled": true,
+      "description": "Defensive construction and building utility."
     }
   ]
 }
