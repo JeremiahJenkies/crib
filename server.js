@@ -117,7 +117,7 @@ const server=http.createServer(async(req,res)=>{
     const a=Number(b.scoreFor),z=Number(b.scoreAgainst); if(!Number.isFinite(a)||!Number.isFinite(z)||a===z)return json(res,400,{error:"LG requires two different kill scores."});
     const win=a>z; const diff=a-z; const rp=Math.max(-60,Math.min(60,Math.round((win?24:-22)+diff*2)));
     const match={id:id("lg"),type:"LG",playerId:p.id,opponent:String(b.opponent||"Unknown"),map:"Reservoir",matchType:"Custom Match",scoreFor:a,scoreAgainst:z,result:win?"Win":"Loss",rp,createdAt:new Date().toISOString()};
-    p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.lateElo=Math.max(0,p.lateElo+Math.round(diff*12));p.lateGames.push(match.id);state.matches.push(match);
+    p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.lateElo=Math.max(0,p.lateElo+Math.round(diff*12));p.lateGames.push(match.id);state.matches.push(match); await saveState();
     return json(res,201,{match,player:publicPlayer(p),breakdown:{base:win?24:-22,differential:diff*2,final:rp}});
   }
   if(u.pathname==="/api/matches"&&req.method==="GET"){
@@ -130,6 +130,13 @@ const server=http.createServer(async(req,res)=>{
   if(u.pathname==="/api/admin/kits"&&req.method==="PUT"){
     if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
     const b=await body(req);const k=kit(b.name);if(!k)return json(res,404,{error:"Kit not found."});Object.assign(k,b);if(k.name==="None")k.rpMultiplier=state.config.noKitMultiplier;await saveState();return json(res,200,{kit:k});
+  }
+  if(req.method==="GET"&&!u.pathname.startsWith("/api/")){
+    const requested=decodeURIComponent(u.pathname==="/"?"index.html":u.pathname.slice(1));
+    const safe=path.normalize(requested).replace(/^([.][.][\\/])+/, "");
+    const file=path.join(process.cwd(),safe);
+    const types={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json; charset=utf-8",".png":"image/png",".jpg":"image/jpeg",".svg":"image/svg+xml"};
+    try{const data=await fs.readFile(file);res.writeHead(200,{"content-type":types[path.extname(file).toLowerCase()]||"application/octet-stream"});return res.end(data)}catch{}
   }
   return json(res,404,{error:"API route not found",path:u.pathname});
  }catch(e){console.error(e);return json(res,500,{error:"Server error",detail:e.message})}
