@@ -1,9 +1,12 @@
 import http from "node:http";
+import fs from "node:fs/promises";
+import path from "node:path";
 import crypto from "node:crypto";
 import { URL } from "node:url";
 
 const PORT = process.env.PORT || 3000;
 const ADMIN_TOKEN = process.env.CRIB_ADMIN_TOKEN || "change-this-admin-token";
+const DATA_FILE = path.join(process.cwd(),"data.json");
 
 const state = {
   players: [],
@@ -25,6 +28,20 @@ const state = {
   config:{baseWin:30,baseLoss:-24,noKitMultiplier:1.20,minKitMultiplier:.88,maxKitMultiplier:1.16,streakCap:.10}
 };
 
+async function loadState(){
+  try{
+    const raw=await fs.readFile(DATA_FILE,"utf8");
+    const saved=JSON.parse(raw);
+    Object.assign(state,saved);
+    state.config={...state.config,...(saved.config||{})};
+    if(!state.kits?.length) state.kits=DEFAULT_KITS;
+  }catch(e){ await saveState(); }
+}
+async function saveState(){
+  const tmp=DATA_FILE+".tmp";
+  await fs.writeFile(tmp,JSON.stringify(state,null,2));
+  await fs.rename(tmp,DATA_FILE);
+}
 function json(res,status,data){
   const body=JSON.stringify(data);
   res.writeHead(status,{"content-type":"application/json; charset=utf-8","access-control-allow-origin":"*","access-control-allow-methods":"GET,POST,PUT,DELETE,OPTIONS","access-control-allow-headers":"content-type,x-admin-token"});
@@ -62,6 +79,8 @@ function findPlayer(idOrName){return state.players.find(p=>p.id===idOrName||p.us
 async function body(req){
  return await new Promise((resolve,reject)=>{let b="";req.on("data",c=>b+=c);req.on("end",()=>{try{resolve(b?JSON.parse(b):{})}catch(e){reject(e)}});req.on("error",reject)})
 }
+await loadState();
+
 const server=http.createServer(async(req,res)=>{
  if(req.method==="OPTIONS"){res.writeHead(204,{"access-control-allow-origin":"*","access-control-allow-methods":"GET,POST,PUT,DELETE,OPTIONS","access-control-allow-headers":"content-type,x-admin-token"});return res.end()}
  const u=new URL(req.url,"http://localhost");
@@ -75,7 +94,7 @@ const server=http.createServer(async(req,res)=>{
     if(username.length<2)return json(res,400,{error:"Username must contain at least 2 characters."});
     if(state.players.some(p=>p.username.toLowerCase()===username.toLowerCase()))return json(res,409,{error:"That player already exists."});
     const p=normalizePlayer({id:id("p"),username,displayName:String(b.displayName||username).trim(),passwordHash:hash(String(b.password||""))});
-    state.players.push(p); return json(res,201,{player:publicPlayer(p)});
+    state.players.push(p); await saveState(); return json(res,201,{player:publicPlayer(p)});
   }
   if(u.pathname.match(/^\/api\/players\/[^/]+\/login$/)&&req.method==="POST"){
     const pid=decodeURIComponent(u.pathname.split("/")[3]); const p=findPlayer(pid); const b=await body(req);
@@ -91,7 +110,7 @@ const server=http.createServer(async(req,res)=>{
     const calc=calculateRP(b,p); const match={id:id("scrim"),type:"SCRIM",mode,playerId:p.id,opponentId:b.opponentId||null,opponents:b.opponents||[],kit:calc.kit,map:b.map||"",scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),result:calc.win?"Win":"Loss",rp:calc.final,kitMultiplier:calc.kitModifier,createdAt:new Date().toISOString(),verified:Boolean(b.verified)};
     p.rp=Math.max(0,p.rp+calc.final); p.peakRP=Math.max(p.peakRP,p.rp); p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;
     p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.mmr=Math.max(0,Math.round(p.mmr+calc.expectedSwing));p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode});
-    state.matches.push(match); return json(res,201,{match,player:publicPlayer(p),breakdown:calc});
+    state.matches.push(match); await saveState(); return json(res,201,{match,player:publicPlayer(p),breakdown:calc});
   }
   if(u.pathname==="/api/matches/lg"&&req.method==="POST"){
     const b=await body(req); const p=findPlayer(b.playerId||b.player||""); if(!p)return json(res,404,{error:"Player not found."});
@@ -106,11 +125,11 @@ const server=http.createServer(async(req,res)=>{
   }
   if(u.pathname==="/api/admin/config"&&req.method==="PUT"){
     if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
-    Object.assign(state.config,await body(req));return json(res,200,{config:state.config});
+    Object.assign(state.config,await body(req));await saveState();return json(res,200,{config:state.config});
   }
   if(u.pathname==="/api/admin/kits"&&req.method==="PUT"){
     if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
-    const b=await body(req);const k=kit(b.name);if(!k)return json(res,404,{error:"Kit not found."});Object.assign(k,b);if(k.name==="None")k.rpMultiplier=state.config.noKitMultiplier;return json(res,200,{kit:k});
+    const b=await body(req);const k=kit(b.name);if(!k)return json(res,404,{error:"Kit not found."});Object.assign(k,b);if(k.name==="None")k.rpMultiplier=state.config.noKitMultiplier;await saveState();return json(res,200,{kit:k});
   }
   return json(res,404,{error:"API route not found",path:u.pathname});
  }catch(e){console.error(e);return json(res,500,{error:"Server error",detail:e.message})}
