@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRIB · Ranked Hub</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-box">
+          <div class="brand-mark">C</div>
+          <div>
+            <small>CRIB</small>
+            <strong>Ranked Hub</strong>
+          </div>
+        </div>
+
+        <div class="profile-box">
+          <div class="avatar" id="sideAvatar">--</div>
+          <div>
+            <div class="profile-name" id="sideName">No player selected</div>
+            <div class="profile-rank" id="sideRank">Create a profile to begin</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-button active" data-page="dashboard"><span>◈</span> Overview</button>
+          <button class="nav-button" data-page="scrims"><span>▣</span> Scrims</button>
+          <button class="nav-button" data-page="winstreak"><span>🔥</span> Winstreak 1v1</button>
+          <button class="nav-button" data-page="late"><span>⚡</span> Late Games</button>
+          <button class="nav-button" data-page="kits"><span>⬡</span> Kit Library</button>
+          <button class="nav-button" data-page="compare"><span>⇄</span> Compare Kits</button>
+          <button class="nav-button" data-page="players"><span>◎</span> Players</button>
+          <button class="nav-button" data-page="leaderboards"><span>◆</span> Leaderboards</button>
+          <button class="nav-button" data-page="admin"><span>⚙</span> Admin Balance</button>
+        </nav>
+
+        <div class="sidebar-callout">
+            <strong>Server Status</strong>
+            <span id="serverStatus">Connecting to CRIB database…</span>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <small class="upper-label">BEDWARS / CRIB RANKED</small>
+            <h2 id="topTitle">Overview</h2>
+          </div>
+
+          <div class="topbar-actions">
+            <select class="player-switcher" id="activePlayerSelect" aria-label="Active player"><option value="">No player profiles</option></select>
+            <button class="soft-btn" id="newPlayerBtn">+ New Player</button>
+            <button class="primary-btn" id="quickAddBtn">+ Record Scrim</button>
+            <button class="soft-btn" id="quickAddLGBtn">+ Record LG</button>
+          </div>
+        </header>
+
+        <div class="content-wrap">
+          <section class="page active" id="dashboard-page">
+            <div class="page-head">
+              <div>
+                <h1 id="dashboardTitle">CRIB Ranked Hub</h1>
+                <p id="dashboardSubtitle">Server-backed player profiles, Scrim progression, and score-only Late Games.</p>
+              </div>
+              <button class="primary-btn" id="dashboardAddMatchBtn">+ Record Scrim</button>
+            </div>
+
+            <div class="stats-grid">
+              <article class="stat-card">
+                <span class="stat-label">Current Rank</span>
+                <strong id="currentRankName">—</strong>
+                <small id="currentRankRP">0 RP</small>
+              </article>
+
+              <article class="stat-card">
+                <span class="stat-label">Wins</span>
+                <strong id="dashboardWins">0</strong>
+                <small id="dashboardWinsMeta">W</small>
+              </article>
+
+              <article class="stat-card">
+                <span class="stat-label">Win Rate</span>
+                <strong id="dashboardWinRate">0%</strong>
+                <small id="dashboardWinMeta">0 / 0</small>
+              </article>
+
+              <article class="stat-card">
+                <span class="stat-label">K/D</span>
+                <strong id="dashboardKD">0.00</strong>
+                <small id="dashboardKDMeta">Kills / Deaths</small>
+              </article>
+            </div>
+
+            <div class="dashboard-grid">
+              <article class="card rank-card">
+                <div class="rank-card-top">
+                  <div>
+                    <div class="rank-banner" id="rankBanner">UNRANKED</div>
+                    <div class="rank-title" id="rankTitle">No player</div>
+                    <div class="rank-sub" id="rankSub">Choose or create a server profile.</div>
+                  </div>
+                  <div class="rank-art" id="rankArt" aria-label="Current rank emblem"></div>
+                </div>
+
+                <div class="rp-row">
+                  <span id="currentRPValue">0</span>
+                  <span>RP</span>
+                </div>
+
+                <div class="progress-meta">
+                  <span id="progressLow">0 RP</span>
+                  <span id="progressTarget">Create a player profile</span>
+                </div>
+                <div class="progress-bar"><span id="rankProgressBar"></span></div>
+
+                <div class="rank-footnote" id="rankFootnote">Need 160 RP to promote.</div>
+              </article>
+
+              <article class="card chart-card">
+                <div class="card-head">
+                  <div>
+                    <h3>RP History</h3>
+                    <small>Recent ranked trend</small>
+                  </div>
+                  <div class="chart-range" role="group" aria-label="Chart range">
+                    <button class="active" data-chart-range="7">7</button>
+                    <button data-chart-range="30">30</button>
+                    <button data-chart-range="all">All</button>
+                  </div>
+                </div>
+                <div class="chart-area">
+                  <canvas id="rpChart"></canvas>
+                </div>
+              </article>
+
+              <article class="card compact-card">
+                <div class="card-head">
+                  <div>
+                    <h3>Quick Stats</h3>
+                    <small>Recent snapshots</small>
+                  </div>
+                </div>
+
+                <div class="mini-stats">
+                  <div>
+                    <span>Winstreak</span>
+                    <strong id="quickWinstreak">0</strong>
+                  </div>
+                  <div>
+                    <span>Peak RP</span>
+                    <strong id="quickPeakRP">0</strong>
+                  </div>
+                  <div>
+                    <span>Average Kills</span>
+                    <strong id="quickAvgKills">0.0</strong>
+                  </div>
+                  <div>
+                    <span>Average Beds</span>
+                    <strong id="quickAvgBeds">0.0</strong>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="section-header">
+              <div>
+                <h3>Recent Matches</h3>
+                <small>Latest 5 ranked results</small>
+              </div>
+              <button class="text-btn" id="recentMatchesBtn">Open Match Vault</button>
+            </div>
+
+            <div class="recent-match-list" id="recentMatchesList"></div>
+
+            <div class="leaderboard-slab">
+              <div class="section-header inline-header">
+                <div>
+                  <h3>Leaderboard</h3>
+                  <small>Top ranked players</small>
+                </div>
+                <button class="text-btn" id="leaderboardOpenBtn">View all</button>
+              </div>
+
+              <div class="leaderboard-rows" id="leaderboardPreview"></div>
+            </div>
+          </section>
+
+          <section class="page" id="ranked-page">
+            <div class="page-head">
+              <div>
+                <h1>Ranked Profile</h1>
+                <p>Current rank standing, division status, RP progress, and performance history.</p>
+              </div>
+            </div>
+
+            <div class="profile-header card">
+              <div class="player-overview">
+                <div class="avatar large" id="profileAvatar">--</div>
+                <div>
+                  <div class="display-name" id="profileDisplayName">No player selected</div>
+                  <div class="username" id="profileUsername"></div>
+                </div>
+              </div>
+
+              <div class="profile-rank-display">
+                <div class="rank-art small" id="profileRankArt" aria-label="Current rank emblem"></div>
+                <div class="rank-chip" id="rankChip">UNRANKED</div>
+              </div>
+            </div>
+
+            <div class="profile-tab-bar" role="tablist" aria-label="Player profile views">
+              <button class="active" data-profile-tab="overview">Overview</button>
+              <button data-profile-tab="scrims">Scrims</button>
+              <button data-profile-tab="late">LG</button>
+              <button data-profile-tab="performance">Performance</button>
+              <button data-profile-tab="history">History</button>
+            </div>
+
+            <div class="rank-summary-grid">
+              <article class="card score-card">
+                <span class="muted">Current RP</span>
+                <strong id="profileRP">0</strong>
+                <small id="profileRPDelta">0 RP</small>
+              </article>
+
+              <article class="card score-card">
+                <span class="muted">Peak RP</span>
+                <strong id="profilePeakRP">0</strong>
+                <small>Best ever</small>
+              </article>
+
+              <article class="card score-card">
+                <span class="muted">Wins</span>
+                <strong id="profileWins">0</strong>
+                <small id="profileWinsLosses">0 - 0</small>
+              </article>
+
+              <article class="card score-card">
+                <span class="muted">Win Rate</span>
+                <strong id="profileWinRate">0%</strong>
+                <small id="profileGames">0 games</small>
+              </article>
+
+              <article class="card score-card">
+                <span class="muted">Crib Rating</span>
+                <strong id="profileCribRating">0</strong>
+                <small id="profilePercentile">Unranked · waiting for matches</small>
+              </article>
+            </div>
+
+            <div class="rank-panel-grid">
+              <article class="card rank-analytics-panel">
+                <div class="card-head">
+                  <div>
+                    <h3>Rank Division</h3>
+                    <small>Current tier and promotion window</small>
+                  </div>
+                </div>
+
+                <div class="division-showcase">
+                  <div class="division-icon" id="divisionIcon">◆</div>
+                  <div>
+                    <div class="division-name" id="divisionName">Unranked</div>
+                    <div class="division-prog" id="divisionProgressText">Create a player profile</div>
+                  </div>
+                </div>
+
+                <div class="progress-bar large"><span id="divisionProgressBar"></span></div>
+                <div class="rank-history-summary" id="rankProgressSummary"></div>
+              </article>
+
+              <article class="card rank-analytics-panel rating-panel">
+                <div class="card-head">
+                  <div>
+                    <h3>Skill Ratings</h3>
+                    <small>Separate from visible ranked RP</small>
+                  </div>
+                </div>
+                <div class="metric-grid">
+                  <div><span>Hidden MMR</span><strong id="profileMMR">0</strong></div>
+                  <div><span>Performance Rating</span><strong id="profilePerformance">0</strong></div>
+                  <div><span>Late Game ELO</span><strong id="profileLateELO">0</strong></div>
+                  <div><span>Recent Form</span><strong id="profileFormRating">0</strong></div>
+                  <div><span>Bed-break streak</span><strong id="profileBedStreak">0</strong></div>
+                  <div><span>Best bed-break streak</span><strong id="profileBestBedStreak">0</strong></div>
+                </div>
+              </article>
+
+              <article class="card rank-analytics-panel">
+                <div class="card-head">
+                  <div>
+                    <h3>Combat Metrics</h3>
+                    <small>Kill and objective impact</small>
+                  </div>
+                </div>
+
+                <div class="metric-grid">
+                  <div><span>Kills</span><strong id="profileKills">0</strong></div>
+                  <div><span>Deaths</span><strong id="profileDeaths">0</strong></div>
+                  <div><span>K/D</span><strong id="profileKD">0.00</strong></div>
+                  <div><span>Beds</span><strong id="profileBeds">0</strong></div>
+                  <div><span>Winstreak</span><strong id="profileWinstreak">0</strong></div>
+                  <div><span>Best Streak</span><strong id="profileBestStreak">0</strong></div>
+                </div>
+              </article>
+            </div>
+
+            <div class="card rank-history-panel">
+              <div class="card-head">
+                <div>
+                  <h3>Rank History</h3>
+                  <small>RP progression over time</small>
+                </div>
+              </div>
+              <div class="history-table-wrap">
+                <table class="history-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Rank</th>
+                      <th>Division</th>
+                      <th>RP</th>
+                      <th>Change</th>
+                      <th>Event</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rankHistoryTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="scrims-page">
+            <div class="page-head">
+              <div>
+                <h1>Scrim Records</h1>
+                <p>Kit-aware results and server-calculated RP. Kit modifiers apply only to Scrims.</p>
+              </div>
+              <button class="primary-btn" id="addScrimBtn">+ Record Scrim</button>
+            </div>
+
+            <div class="card filter-card">
+              <div class="toolbar-row">
+                <input type="search" id="scrimSearch" placeholder="Search Scrim kits, opponents, notes…" />
+                <select id="scrimFilterMode"><option value="all">All Scrim formats</option><option value="STANDARD_SCRIM">Standard</option><option value="NO_BED_SCRIM">No-Bed</option></select>
+                <select id="scrimFilterKit"><option value="all">All kits</option></select>
+                <select id="scrimFilterResult"><option value="all">All results</option><option>Win</option><option>Loss</option></select>
+              </div>
+            </div>
+
+            <div class="card table-card">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Scrim ID</th>
+                      <th>Kit</th>
+                      <th>Power</th>
+                      <th>Kit RP</th>
+                      <th>Result</th>
+                      <th>Opponents</th>
+                      <th>Score</th>
+                      <th>Performance</th>
+                      <th>RP</th>
+                      <th>Date</th>
+                      <th>Verified</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="matchesTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="winstreak-page">
+            <div class="page-head"><div><h1>Winstreak 1v1</h1><p>One player versus one registered opponent. Independent RP, MMR, and streak records.</p></div><button class="primary-btn" id="openWinstreakBtn">+ Record 1v1</button></div>
+            <div class="stats-grid" id="winstreakSummary"></div>
+            <div class="card late-list-card"><div class="card-head"><div><h3>Winstreak History</h3><small>Streak wins, opponents, and resets</small></div></div><div id="winstreakHistory" class="streak-history-list"></div></div>
+            <div class="card late-list-card"><div class="card-head"><div><h3>🏆 Winstreak Leaderboard</h3><small>Independent from the normal RP leaderboard</small></div></div><div id="winstreakLeaderboard" class="leaderboard-large"></div></div>
+          </section>
+
+          <section class="page" id="players-page">
+            <div class="page-head">
+              <div>
+                <h1>Player Profiles</h1>
+                <p>Independent server-backed profiles. Player records are keyed by unique IDs.</p>
+              </div>
+              <button class="primary-btn" id="playersCreateBtn">+ Create Player</button>
+            </div>
+
+            <div class="card search-card">
+              <input type="search" id="playerSearchInput" placeholder="Search registered players…" />
+            </div>
+
+            <div class="card table-card">
+              <div class="table-wrap"><table><thead><tr><th>Player</th><th>Rank</th><th>RP</th><th>Peak RP</th><th>Scrims</th><th>Win Rate</th><th>Profile</th></tr></thead><tbody id="playersTableBody"></tbody></table></div>
+            </div>
+          </section>
+
+          <section class="page" id="kits-page">
+            <div class="page-head"><div><h1>Kit Library</h1><p>Wiki-sourced kit mechanics, weighted power scoring, and Scrim-only RP modifiers.</p></div></div>
+            <div class="card filter-card"><div class="toolbar-row">
+              <input id="kitSearch" type="search" placeholder="Search Kits…" />
+              <select id="kitClassFilter"><option value="all">All classes</option></select>
+              <select id="kitTierFilter"><option value="all">All tiers</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>NONE</option></select>
+              <select id="kitStatusFilter"><option value="all">Enabled + disabled</option><option value="enabled">Enabled</option><option value="disabled">Disabled</option></select>
+              <input id="kitMinPower" type="number" min="0" max="100" placeholder="Min power" />
+              <input id="kitMaxPower" type="number" min="0" max="100" placeholder="Max power" />
+              <input id="kitMinRP" type="number" min="0" max="2" step="0.01" placeholder="Min RP ×" />
+              <input id="kitMaxRP" type="number" min="0" max="2" step="0.01" placeholder="Max RP ×" />
+              <select id="kitSort"><option value="alphabetical">Alphabetical</option><option value="strongest">Strongest</option><option value="weakest">Weakest</option><option value="highest-rp">Highest RP multiplier</option><option value="lowest-rp">Lowest RP multiplier</option></select>
+            </div></div>
+            <div class="card table-card"><div class="table-wrap"><table><thead><tr><th>Kit</th><th>Class</th><th>Power</th><th>Tier</th><th>RP multiplier</th><th>Ability</th><th>Status</th></tr></thead><tbody id="kitsTableBody"></tbody></table></div></div>
+            <p class="source-note" id="kitSourceStatus">Loading sourced catalog…</p>
+          </section>
+
+          <section class="page" id="compare-page">
+            <div class="page-head"><div><h1>Kit Comparison</h1><p>Compare Scrim RP modifiers and kit mechanics. LG records never use kits.</p></div></div>
+            <div class="card compare-controls">
+              <div class="field-group"><label>First kit</label><select id="compareKitA"></select></div>
+              <strong class="versus-mark">VS</strong>
+              <div class="field-group"><label>Second kit</label><select id="compareKitB"></select></div>
+            </div>
+            <div class="kit-comparison-grid" id="kitComparisonResult"></div>
+          </section>
+
+          <section class="page" id="leaderboards-page">
+            <div class="page-head">
+              <div>
+                <h1>Leaderboards</h1>
+                <p>Global ranked standings across the active season.</p>
+              </div>
+            </div>
+
+            <div class="card leaderboard-card">
+              <div class="toolbar-row compact-row">
+                <select id="leaderboardFilter">
+                  <option value="overall">Overall · Crib Rating</option>
+                  <option value="best-scrim">Best Scrim Player</option>
+                  <option value="best-lg">Best LG Player</option>
+                  <option value="highest-rp">Highest RP</option>
+                  <option value="most-improved">Most Improved</option>
+                  <option value="highest-streak">Highest Winstreak</option>
+                  <option value="highest-performance">Highest Performance</option>
+                  <option value="best-no-kit">Best No-Kit</option>
+                  <option value="best-underdog">Best Underdog</option>
+                  <option value="best-consistency">Best Consistency</option>
+                </select>
+              </div>
+
+              <div class="leaderboard-large" id="leaderboardTable"></div>
+            </div>
+          </section>
+
+          <section class="page" id="late-page">
+            <div class="page-head">
+              <div>
+                <h1>Late Games</h1>
+                <p>Custom late-game matches are auto-configured for Reservoir and Custom Match.</p>
+              </div>
+              <button class="primary-btn" id="openLateGameBtn">+ Add Late Game</button>
+            </div>
+
+            <div class="stats-grid late-summary-grid" id="lateSummaryStats"></div>
+
+            <div class="card late-list-card">
+              <div class="late-grid" id="lateGamesList"></div>
+            </div>
+            <div class="card late-list-card late-rivals-card">
+              <div class="card-head">
+                <div><h3>Late Game Leaderboard</h3><small>Opponent record and score differential</small></div>
+              </div>
+              <div id="lateRivalsList" class="late-rivals-list"></div>
+            </div>
+          </section>
+
+          <section class="page" id="statistics-page">
+            <div class="page-head">
+              <div>
+                <h1>Statistics</h1>
+                <p>Detailed performance indicators and recent competitive trends.</p>
+              </div>
+            </div>
+
+            <div class="stats-panel-grid">
+              <article class="card stat-panel">
+                <div class="card-head">
+                  <div>
+                    <h3>Core Stats</h3>
+                    <small>Key performance metrics</small>
+                  </div>
+                </div>
+
+                <div class="metric-grid large-metric">
+                  <div><span>Win Rate</span><strong id="statWinRate">0%</strong></div>
+                  <div><span>K/D</span><strong id="statKD">0.00</strong></div>
+                  <div><span>Avg Kills</span><strong id="statAvgKills">0.00</strong></div>
+                  <div><span>Avg Beds</span><strong id="statAvgBeds">0.00</strong></div>
+                  <div><span>Avg Placement</span><strong id="statAvgPlacement">0.0</strong></div>
+                  <div><span>RP Change</span><strong id="statRPChange">0</strong></div>
+                  <div><span>Streak</span><strong id="statWinstreak">0</strong></div>
+                  <div><span>Games</span><strong id="statGames">0</strong></div>
+                  <div><span>Hidden MMR</span><strong id="statMMR">0</strong></div>
+                  <div><span>Performance Rating</span><strong id="statPerformance">0</strong></div>
+                  <div><span>Late Game ELO</span><strong id="statLateELO">0</strong></div>
+                  <div><span>Recent Form</span><strong id="statFormRating">0</strong></div>
+                </div>
+              </article>
+
+              <article class="card stat-panel">
+                <div class="card-head">
+                  <div>
+                    <h3>Performance Graph</h3>
+                    <small>Recent outcomes</small>
+                  </div>
+                </div>
+                <div class="chart-area tall">
+                  <canvas id="analyticsChart"></canvas>
+                </div>
+              </article>
+            </div>
+            <div class="stats-panel-grid secondary-stat-grid">
+              <article class="card stat-panel">
+                <div class="card-head"><div><h3>Kit Statistics</h3><small>Win rate, match output, RP and efficiency per kit</small></div></div>
+                <div id="kitStatsList" class="map-stats-list"></div>
+              </article>
+              <article class="card stat-panel">
+                <div class="card-head"><div><h3>Map Performance</h3><small>Win rate and combat output by map</small></div></div>
+                <div id="mapStatsList" class="map-stats-list"></div>
+              </article>
+              <article class="card stat-panel">
+                <div class="card-head"><div><h3>Role Performance</h3><small>Rush, Defender, Support, Resource, Mid and Flex</small></div></div>
+                <div id="roleStatsList" class="map-stats-list"></div>
+              </article>
+              <article class="card stat-panel">
+                <div class="card-head"><div><h3>Head-to-Head</h3><small>Opponent records from saved matches</small></div></div>
+                <div id="opponentStatsList" class="opponent-stats-list"></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="page" id="admin-page">
+            <div class="page-head"><div><h1>Admin · Kit Balance</h1><p>Server-owned kit scores, RP multipliers, and Scrim scoring configuration.</p></div></div>
+            <div class="card settings-card admin-auth-card">
+              <div class="search-row"><input type="password" id="adminTokenInput" autocomplete="current-password" placeholder="Server admin token" /><button class="primary-btn" id="adminLoginBtn">Unlock Admin</button><button class="soft-btn" id="syncKitsBtn">Sync Wiki Kits</button></div>
+              <small id="adminStatus" class="season-status">Admin settings are protected by the server token.</small>
+            </div>
+            <div class="card settings-card">
+              <div class="card-head"><div><h3>Scrim RP Configuration</h3><small>Kit modifier applies to Scrims only. No Kit is kept above all kit multipliers.</small></div><button class="primary-btn" id="saveServerConfigBtn">Save Config</button></div>
+              <div id="serverConfigFields" class="stats-editor-grid"></div>
+            </div>
+            <div class="card filter-card admin-kit-toolbar"><div class="toolbar-row"><input id="adminKitSearch" type="search" placeholder="Find kit to balance…" /><select id="adminKitStatus"><option value="all">All statuses</option><option value="enabled">Enabled</option><option value="disabled">Disabled</option></select></div></div>
+            <div class="card table-card"><div class="table-wrap"><table><thead><tr><th>Kit</th><th>Class</th><th>Base power</th><th>Meta adjustment</th><th>Final power</th><th>Tier</th><th>RP multiplier</th><th>Status</th><th>Save</th></tr></thead><tbody id="adminKitsTableBody"></tbody></table></div></div>
+            <div class="card settings-card admin-review-panel"><div class="card-head"><div><h3>Flagged Scrims</h3><small>Review suspicious results; records are retained.</small></div><button class="soft-btn" id="loadReviewQueueBtn">Refresh Queue</button></div><div id="reviewQueue" class="review-queue"></div></div>
+            <div class="card settings-card admin-audit-panel"><div class="card-head"><div><h3>Admin Audit Log</h3><small>Role changes, balance edits, and match corrections.</small></div></div><div id="auditLogList" class="audit-log-list"></div></div>
+            <div class="card settings-card admin-map-panel"><div class="card-head"><div><h3>Kit / Map Compatibility</h3><small>Map adjustment changes effective power and Scrim modifier only.</small></div></div><div class="form-grid two-col"><div class="field-group"><label>Map</label><input id="mapModifierName" placeholder="Map name" /></div><div class="field-group"><label>Kit</label><select id="mapModifierKit"></select></div><div class="field-group"><label>Power adjustment</label><input id="mapModifierValue" type="number" min="-100" max="100" value="0" /></div><button class="soft-btn" id="saveMapModifierBtn">Save Map Modifier</button></div><div id="mapModifierList" class="map-modifier-list"></div></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="scrimModal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <div>
+            <h3>Record Scrim</h3>
+            <small>Choose a kit and submit match performance. The server calculates RP.</small>
+          </div>
+          <button class="icon-btn" data-close-modal="scrimModal" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid two-col">
+            <div class="field-group full-span"><label>Scrim format</label><select id="scrimModeSelect"><option value="STANDARD_SCRIM">Standard Scrim</option><option value="NO_BED_SCRIM">No-Bed Scrim</option><option value="WINSTREAK_1V1">Winstreak 1v1</option></select></div>
+            <div id="noBedModeBanner" class="mode-banner no-bed-banner" hidden>🛡 NO-BED · BED BREAKING DISABLED</div>
+            <div id="winstreakModeBanner" class="mode-banner winstreak-banner" hidden><span>PLAYER</span><strong>VS</strong><span id="winstreakOpponentName">OPPONENT</span><b>CURRENT WINSTREAK <em id="winstreakModalCurrent">0</em></b></div>
+            <div class="field-group full-span" id="scrimKitFields"><label>Kit</label><select id="scrimKitSelect" required></select><small id="scrimKitHint" class="field-hint">Select No Kit for the strongest kit RP modifier.</small></div>
+            <div class="field-group full-span" id="opponentKitFields" hidden><label>Opponent kit</label><select id="winstreakOpponentKitSelect"></select></div>
+            <div class="field-group" id="scrimMapFields"><label>Map</label><input id="scrimMap" placeholder="Map name" required /></div>
+            <div class="field-group" id="scrimRoleFields"><label>Role</label><select id="scrimRole"><option>Flex</option><option>Rush</option><option>Defender</option><option>Support</option><option>Resource</option><option>Mid</option></select></div>
+            <div class="field-group"><label>Score · your team</label><input id="scrimScoreFor" type="number" min="0" value="7" required /></div>
+            <div class="field-group"><label>Score · opposing team</label><input id="scrimScoreAgainst" type="number" min="0" value="4" required /></div>
+            <div class="field-group" id="standardOpponentFields"><label>Opponents</label><input id="scrimOpponents" placeholder="Name, Name" /></div>
+            <div class="field-group" id="winstreakOpponentFields" hidden><label>Opponent · exactly one</label><select id="winstreakOpponentSelect"></select></div>
+            <div class="field-group" id="scrimOpponentRatingFields"><label>Average opponent RP</label><input id="scrimOpponentRP" type="number" min="0" placeholder="Optional" /></div>
+            <div class="field-group" id="scrimOpponentTeamRatingFields"><label>Opponent team ratings</label><input id="scrimOpponentRatings" placeholder="2500, 2400" /></div>
+            <div class="field-group" id="scrimTeammateFields"><label>Teammates</label><input id="scrimTeammates" placeholder="Name, Name" /></div>
+            <div class="field-group" id="scrimTeammateRatingFields"><label>Teammate ratings</label><input id="scrimTeammateRatings" placeholder="2500, 2400" /></div>
+            <div class="field-group" id="scrimAverageKillsFields"><label>Match average kills</label><input id="scrimAverageKills" type="number" min="0" value="8" /></div>
+            <div class="field-group" id="scrimOpponentStreakFields"><label>Opponent winstreak</label><input id="scrimOpponentStreak" type="number" min="0" value="0" /></div>
+            <div class="field-group" id="scrimCombatFields"><label>Kills / deaths</label><div class="inline-number-pair"><input id="scrimKills" type="number" min="0" value="0" aria-label="Kills" /><input id="scrimDeaths" type="number" min="0" value="0" aria-label="Deaths" /></div></div>
+            <div class="field-group" id="scrimBedsFields"><label>Beds destroyed / lost</label><div class="inline-number-pair"><input id="scrimBedsDestroyed" type="number" min="0" value="0" aria-label="Beds destroyed" /><input id="scrimBedsLost" type="number" min="0" value="0" aria-label="Beds lost" /></div></div>
+            <div class="field-group" id="scrimPlacementFields"><label>Final placement</label><input id="scrimPlacement" type="number" min="1" value="1" /></div>
+            <div class="field-group" id="scrimDurationFields"><label>Duration (minutes)</label><input id="scrimDuration" type="number" min="0" value="8" /></div>
+            <div class="field-group" id="scrimVerificationFields"><label>Verification</label><select id="scrimVerified"><option value="0">Unverified</option><option value="1">Verified</option></select></div>
+            <div class="field-group full-span"><label>Notes</label><textarea id="scrimNotes" rows="3" placeholder="Optional match note"></textarea></div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="soft-btn" data-close-modal="scrimModal">Cancel</button>
+          <button class="primary-btn" id="saveScrimBtn">Submit Scrim</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="rpResultModal">
+      <div class="modal-panel rp-result-panel">
+        <div class="modal-head">
+          <div>
+            <h3 id="rpResultTitle">Match Rating</h3>
+            <small id="rpResultSubtitle">Your match has been rated.</small>
+          </div>
+          <button class="icon-btn" data-close-modal="rpResultModal" aria-label="Close">✕</button>
+        </div>
+        <div class="rp-result-summary">
+          <span>RP CHANGE</span>
+          <strong id="rpResultValue">+0</strong>
+          <div id="rpRankChange"></div>
+        </div>
+        <div class="modal-body">
+          <details class="rp-breakdown" open>
+            <summary>How was my RP calculated?</summary>
+            <div id="rpBreakdownRows"></div>
+          </details>
+          <div class="rating-update-row" id="ratingUpdateRow"></div>
+        </div>
+        <div class="modal-foot"><button class="primary-btn" data-close-modal="rpResultModal">Continue</button></div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="lateGameModal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <div>
+            <h3>Late Game</h3>
+            <small>Reservoir · Custom Match · score-only RP</small>
+          </div>
+          <button class="icon-btn" data-close-modal="lateGameModal">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-grid two-col">
+            <div class="field-group full-span"><label>Opponent</label><input id="lateOpponent" placeholder="Opponent username" required /></div>
+            <div class="field-group"><label>Your score (kills)</label><input id="latePlayerScore" type="number" min="0" required /></div>
+            <div class="field-group"><label>Opponent score (kills)</label><input id="lateOpponentScore" type="number" min="0" required /></div>
+          </div>
+        </div>
+
+        <div class="modal-foot">
+          <button class="soft-btn" data-close-modal="lateGameModal">Cancel</button>
+          <button class="primary-btn" id="saveLateGameBtn">Save LG Score</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="createPlayerModal">
+      <div class="modal-panel">
+        <div class="modal-head"><div><h3>Create Player</h3><small>A new independent profile stored by the CRIB server.</small></div><button class="icon-btn" data-close-modal="createPlayerModal" aria-label="Close">✕</button></div>
+        <div class="modal-body"><div class="field-group"><label>Username</label><input id="newPlayerUsername" minlength="2" maxlength="24" required /></div><div class="field-group"><label>Display name</label><input id="newPlayerDisplayName" maxlength="48" /></div><div class="field-group"><label>Password</label><input id="newPlayerPassword" type="password" minlength="8" autocomplete="new-password" required /></div><div id="createPlayerError" class="form-error"></div></div>
+        <div class="modal-foot"><button class="soft-btn" data-close-modal="createPlayerModal">Cancel</button><button class="primary-btn" id="createPlayerSubmit">Create Profile</button></div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="playerLoginModal">
+      <div class="modal-panel">
+        <div class="modal-head"><div><h3>Sign In</h3><small id="playerLoginLabel">Authenticate this player profile on the CRIB server.</small></div><button class="icon-btn" data-close-modal="playerLoginModal" aria-label="Close">✕</button></div>
+        <div class="modal-body"><div class="field-group"><label>Password</label><input id="playerLoginPassword" type="password" autocomplete="current-password" /></div><div id="playerLoginError" class="form-error"></div></div>
+        <div class="modal-foot"><button class="soft-btn" data-close-modal="playerLoginModal">Cancel</button><button class="primary-btn" id="playerLoginSubmit">Sign In</button></div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
