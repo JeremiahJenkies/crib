@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+<defs>
+ <radialGradient id="g" cx="50%" cy="45%"><stop offset="0" stop-color="#c084fc"/><stop offset=".55" stop-color="#c084fc" stop-opacity=".72"/><stop offset="1" stop-color="#581c87" stop-opacity="0"/></radialGradient>
+ <linearGradient id="m" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c084fc"/><stop offset=".48" stop-color="#fff"/><stop offset="1" stop-color="#581c87"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<circle cx="200" cy="205" r="170" fill="url(#g)" filter="url(#glow)"/>
+<path d="M200 36 L238 92 L310 74 L286 136 L352 174 L292 196 L315 276 L250 247 L200 336 L150 247 L85 276 L108 196 L48 174 L114 136 L90 74 L162 92Z" fill="#581c87" stroke="#fff" stroke-opacity=".75" stroke-width="8" stroke-linejoin="round"/>
+<path d="M200 70 L229 128 L294 126 L251 170 L267 232 L200 204 L133 232 L149 170 L106 126 L171 128Z" fill="url(#m)" stroke="#fff" stroke-opacity=".8" stroke-width="6"/>
+<path d="M200 116 L238 154 L224 214 L200 244 L176 214 L162 154Z" fill="#c084fc" stroke="#fff" stroke-width="5"/>
+<path d="M200 130 L222 154 L200 178 L178 154Z" fill="#fff" fill-opacity=".8"/>
+<circle cx="200" cy="205" r="25" fill="#fff" fill-opacity=".7"/><circle cx="200" cy="205" r="15" fill="#c084fc"/>
+</svg>
