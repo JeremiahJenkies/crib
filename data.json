@@ -1,0 +1,109 @@
+{
+  "players": [],
+  "matches": [],
+  "config": {
+    "baseWin": 30,
+    "baseLoss": -24,
+    "noKitMultiplier": 1.2,
+    "minKitMultiplier": 0.88,
+    "maxKitMultiplier": 1.16
+  },
+  "kits": [
+    {
+      "name": "None",
+      "class": "None",
+      "power": 0,
+      "tier": "NONE",
+      "rpMultiplier": 1.2,
+      "enabled": true
+    },
+    {
+      "name": "Barbarian",
+      "class": "Fighter",
+      "power": 82,
+      "tier": "S",
+      "rpMultiplier": 0.94,
+      "enabled": true
+    },
+    {
+      "name": "Aery",
+      "class": "Fighter",
+      "power": 80,
+      "tier": "S",
+      "rpMultiplier": 0.944,
+      "enabled": true
+    },
+    {
+      "name": "Archer",
+      "class": "Ranged",
+      "power": 72,
+      "tier": "A",
+      "rpMultiplier": 0.97,
+      "enabled": true
+    },
+    {
+      "name": "Grim Reaper",
+      "class": "Fighter",
+      "power": 76,
+      "tier": "A",
+      "rpMultiplier": 0.957,
+      "enabled": true
+    },
+    {
+      "name": "Void Knight",
+      "class": "Movement",
+      "power": 78,
+      "tier": "A",
+      "rpMultiplier": 0.95,
+      "enabled": true
+    },
+    {
+      "name": "Yuzi",
+      "class": "Movement",
+      "power": 70,
+      "tier": "A",
+      "rpMultiplier": 0.976,
+      "enabled": true
+    },
+    {
+      "name": "Vulcan",
+      "class": "Defender",
+      "power": 68,
+      "tier": "A",
+      "rpMultiplier": 0.982,
+      "enabled": true
+    },
+    {
+      "name": "Farmer Cletus",
+      "class": "Economy",
+      "power": 58,
+      "tier": "B",
+      "rpMultiplier": 1.014,
+      "enabled": true
+    },
+    {
+      "name": "Miner",
+      "class": "Economy",
+      "power": 55,
+      "tier": "B",
+      "rpMultiplier": 1.024,
+      "enabled": true
+    },
+    {
+      "name": "Melody",
+      "class": "Support",
+      "power": 46,
+      "tier": "C",
+      "rpMultiplier": 1.053,
+      "enabled": true
+    },
+    {
+      "name": "Builder",
+      "class": "Defender",
+      "power": 43,
+      "tier": "C",
+      "rpMultiplier": 1.062,
+      "enabled": true
+    }
+  ]
+}
