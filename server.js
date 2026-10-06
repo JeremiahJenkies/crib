@@ -25,7 +25,7 @@ const state = {
     {name:"Yuzi",class:"Movement",power:70,tier:"A",rpMultiplier:.976,enabled:true,description:"Provides enhanced mobility and aggressive combat utility."},
     {name:"Vulcan",class:"Defender",power:68,tier:"A",rpMultiplier:.982,enabled:true,description:"Provides remote turret and defensive control utility."}
   ],
-  config:{baseWin:30,baseLoss:-24,noKitMultiplier:1.20,minKitMultiplier:.88,maxKitMultiplier:1.16,streakCap:.10}
+  config:{baseWin:30,baseLoss:-24,noKitMultiplier:1.20,minKitMultiplier:.88,maxKitMultiplier:1.16,streakCap:.10,kitPowerWeights:{combat:.20,mobility:.10,economy:.15,defense:.10,teamUtility:.10,objective:.15,snowball:.10,consistency:.10},winstreakRP:{3:.02,5:.04,8:.06,10:.08,15:.10},winstreak1v1KitsEnabled:true}
 };
 
 async function loadState(){
@@ -53,22 +53,34 @@ function rank(rp){if(rp>=3000)return"Radiant";if(rp>=2600)return"Diamond";if(rp>
 function kit(name){
   return state.kits.find(k=>k.name.toLowerCase()===String(name||"none").toLowerCase()) || state.kits[0];
 }
+function kitMultiplierFor(k){
+  if(!k||k.name==="None") return Number(state.config.noKitMultiplier??1.20);
+  if(Number.isFinite(Number(k.manualRpMultiplier))) return Number(k.manualRpMultiplier);
+  const power=Math.max(0,Math.min(100,Number(k.powerScore??k.power??50)));
+  const min=Number(state.config.minKitMultiplier??.88),max=Number(state.config.maxKitMultiplier??1.16);
+  return Math.max(min,Math.min(max,1.20-(power/100)*.32+(Number(k.metaAdjustment||0)*-.0032)));
+}
 function calculateRP(body,p){
+  const mode=body.mode||"STANDARD_SCRIM";
   const k=kit(body.kit);
   const win=Number(body.scoreFor||0)>Number(body.scoreAgainst||0);
   const diff=Math.abs(Number(body.scoreFor||0)-Number(body.scoreAgainst||0));
-  const perf=Math.max(-8,Math.min(8,Math.round(diff*1.5)));
   const opponent=Number(body.opponentRP||p.rp||1000);
   const expected=1/(1+Math.pow(10,(p.rp-opponent)/400));
   const outcome=win?1:0;
   const expectedSwing=Math.round((outcome-expected)*24);
-  const streak=Math.min(Number(p.winstreak||0),10);
+  const streak=Math.min(Number(p.winstreak||0),15);
   const streakBonus=win?Math.round(streak*.5):0;
-  const modifier=body.kit==="None"||!body.kit?state.config.noKitMultiplier:k.rpMultiplier;
+  const perf=mode==="NO_BED_SCRIM"
+    ? Math.max(-10,Math.min(10,Math.round(diff*1.25)))
+    : mode==="WINSTREAK_1V1"
+      ? Math.max(-10,Math.min(10,Math.round(diff*1.5)))
+      : Math.max(-8,Math.min(8,Math.round(diff*1.5)));
   const base=win?state.config.baseWin:state.config.baseLoss;
+  const modifier=mode==="LG"?1:kitMultiplierFor(k);
   const raw=base+expectedSwing+perf+streakBonus;
   const final=Math.round(raw*modifier);
-  return {final,base,expectedSwing,perf,streakBonus,kitModifier:modifier,kit:k.name,win,expectedWinChance:Math.round(expected*100)};
+  return {final,base,expectedSwing,perf,streakBonus,kitModifier:modifier,kit:k?.name||"None",kitPowerAtMatch:Number(k?.powerScore??k?.power??0),kitMultiplierAtMatch:modifier,win,expectedWinChance:Math.round(expected*100)};
 }
 function normalizePlayer(x){
  return {id:x.id,username:x.username,displayName:x.displayName||x.username,rp:x.rp??1000,peakRP:x.peakRP??x.rp??1000,wins:x.wins??0,losses:x.losses??0,kills:x.kills??0,deaths:x.deaths??0,beds:x.beds??0,winstreak:x.winstreak??0,bestStreak:x.bestStreak??0,cribRating:x.cribRating??1000,mmr:x.mmr??1000,lateElo:x.lateElo??1000,matches:x.matches??[],lateGames:x.lateGames??[],history:x.history??[],passwordHash:x.passwordHash};
@@ -106,8 +118,8 @@ const server=http.createServer(async(req,res)=>{
     if(!p)return json(res,404,{error:"Player not found."});
     const mode=b.mode||"STANDARD_SCRIM";
     if(!["STANDARD_SCRIM","NO_BED_SCRIM","WINSTREAK_1V1"].includes(mode))return json(res,400,{error:"Invalid Scrim mode."});
-    if(mode==="WINSTREAK_1V1"&&!findPlayer(b.opponentId||b.opponent||""))return json(res,400,{error:"Winstreak 1v1 requires a registered opponent."});
-    const calc=calculateRP(b,p); const match={id:id("scrim"),type:"SCRIM",mode,playerId:p.id,opponentId:b.opponentId||null,opponents:b.opponents||[],kit:calc.kit,map:b.map||"",scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),result:calc.win?"Win":"Loss",rp:calc.final,kitMultiplier:calc.kitModifier,createdAt:new Date().toISOString(),verified:Boolean(b.verified)};
+    if(mode==="WINSTREAK_1V1"&&!findPlayer(b.opponentId||b.opponent||""))return json(res,400,{error:"Winstreak 1v1 requires a registered opponent."});\n    if(mode==="WINSTREAK_1V1"&&!state.config.winstreak1v1KitsEnabled)b.kit="None";\n    if(mode==="NO_BED_SCRIM")b.bedsDestroyed=0;
+    const calc=calculateRP(b,p); const match={id:id("scrim"),type:"SCRIM",mode,playerId:p.id,opponentId:b.opponentId||null,opponents:b.opponents||[],kit:calc.kit,map:b.map||"",kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),result:calc.win?"Win":"Loss",rp:calc.final,kitMultiplier:calc.kitModifier,createdAt:new Date().toISOString(),verified:Boolean(b.verified)};
     p.rp=Math.max(0,p.rp+calc.final); p.peakRP=Math.max(p.peakRP,p.rp); p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;
     p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.mmr=Math.max(0,Math.round(p.mmr+calc.expectedSwing));p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode});
     state.matches.push(match); await saveState(); return json(res,201,{match,player:publicPlayer(p),breakdown:calc});
@@ -129,7 +141,7 @@ const server=http.createServer(async(req,res)=>{
   }
   if(u.pathname==="/api/admin/kits"&&req.method==="PUT"){
     if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
-    const b=await body(req);const k=kit(b.name);if(!k)return json(res,404,{error:"Kit not found."});Object.assign(k,b);if(k.name==="None")k.rpMultiplier=state.config.noKitMultiplier;await saveState();return json(res,200,{kit:k});
+    const b=await body(req);const k=kit(b.name);if(!k)return json(res,404,{error:"Kit not found."});Object.assign(k,b);\n    if(k.powerScore!==undefined){const power=Math.max(0,Math.min(100,Number(k.powerScore)));k.powerScore=power;k.rpMultiplier=kitMultiplierFor(k)}\n    if(k.name==="None")k.rpMultiplier=state.config.noKitMultiplier;await saveState();return json(res,200,{kit:k});
   }
   if(req.method==="GET"&&!u.pathname.startsWith("/api/")){
     const requested=decodeURIComponent(u.pathname==="/"?"index.html":u.pathname.slice(1));
