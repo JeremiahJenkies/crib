@@ -35,12 +35,12 @@ function renderQoL(){
   text("quickWinstreak",active.winstreak);text("quickPeakRP",active.peakRP);
   text("quickAvgKills",ms.length?(ms.reduce((a,x)=>a+(Number(x.kills)||0),0)/ms.length).toFixed(1):"0.0");
   text("quickAvgBeds",ms.length?(ms.reduce((a,x)=>a+(Number(x.bedsDestroyed)||0),0)/ms.length).toFixed(1):"0.0");
-  const recentBox=$("recentMatchesList");if(recentBox)recentBox.innerHTML=recent.map(m=>\`<div class="match-row"><span><b>\${m.type==="LG"?"⚡ LG":"▣ SCRIM"}</b> · \${esc(m.result)}<small class="muted"> · \${fmtDate(m.createdAt)}</small></span><b>\${m.rp>=0?"+":""}\${m.rp} RP</b></div>\`).join("")||'<div class="match-row muted">No matches recorded yet.</div>';
+  const recentBox=$("recentMatchesList");if(recentBox)recentBox.innerHTML=recent.map(m=>`<div class="match-row"><span><b>${m.type==="LG"?"⚡ LG":"▣ SCRIM"}</b> · ${esc(m.result)}<small class="muted"> · ${fmtDate(m.createdAt)}</small></span><b>${m.rp>=0?"+":""}${m.rp} RP</b></div>`).join("")||'<div class="match-row muted">No matches recorded yet.</div>';
 }
 function renderLeaderboardQoL(){
  const e=$("leaderboardTable"),p=$("leaderboardPreview");if(!e&&!p)return;
  const arr=[...players].sort((a,b)=>b.cribRating-a.cribRating);
- const html=arr.map((x,i)=>\`<div class="leaderboard-row"><span><b>#\${i+1}</b> · \${esc(x.displayName)} <small class="muted">· \${cribRank(x.rp).label}</small></span><strong>\${x.cribRating}</strong></div>\`).join("")||'<div class="match-row muted">No players yet.</div>';
+ const html=arr.map((x,i)=>`<div class="leaderboard-row"><span><b>#${i+1}</b> · ${esc(x.displayName)} <small class="muted">· ${cribRank(x.rp).label}</small></span><strong>${x.cribRating}</strong></div>`).join("")||'<div class="match-row muted">No players yet.</div>';
  if(e)e.innerHTML=html;if(p)p.innerHTML=html.slice(0,5000);
 }
 function renderKitQoL(){
@@ -49,14 +49,14 @@ function renderKitQoL(){
  a=a.filter(k=>(!q||JSON.stringify(k).toLowerCase().includes(q))&&(cls==="all"||k.class===cls)&&(tier==="all"||k.tier===tier)&&(status==="all"||(status==="enabled"?k.enabled:!k.enabled)));
  const sort=$("kitSort")?.value||"alphabetical";
  a.sort((x,y)=>sort==="strongest"?y.power-x.power:sort==="weakest"?x.power-y.power:sort==="highest-rp"?y.rpMultiplier-x.rpMultiplier:sort==="lowest-rp"?x.rpMultiplier-y.rpMultiplier:x.name.localeCompare(y.name));
- e.innerHTML=a.map(k=>\`<tr><td><b>\${esc(k.name)}</b></td><td>\${esc(k.class)}</td><td>\${k.power}</td><td>\${k.tier}</td><td>×\${Number(k.rpMultiplier).toFixed(3)}</td><td>\${esc(k.description||"—")}</td><td>\${k.enabled?"Enabled":"Disabled"}</td></tr>\`).join("")||'<tr><td colspan="7" class="muted">No kits match those filters.</td></tr>';
- const cs=$("kitClassFilter");if(cs){const old=cls;cs.innerHTML='<option value="all">All classes</option>'+[...new Set(kits.map(k=>k.class))].sort().map(x=>\`<option value="\${esc(x)}">\${esc(x)}</option>\`).join("");cs.value=old}
+ e.innerHTML=a.map(k=>`<tr><td><b>${esc(k.name)}</b></td><td>${esc(k.class)}</td><td>${k.power}</td><td>${k.tier}</td><td>×${Number(k.rpMultiplier).toFixed(3)}</td><td>${esc(k.description||"—")}</td><td>${k.enabled?"Enabled":"Disabled"}</td></tr>`).join("")||'<tr><td colspan="7" class="muted">No kits match those filters.</td></tr>';
+ const cs=$("kitClassFilter");if(cs){const old=cls;cs.innerHTML='<option value="all">All classes</option>'+[...new Set(kits.map(k=>k.class))].sort().map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");cs.value=old}
 }
 function renderStatsQoL(){
  if(!active)return;const ms=currentMatches(),g=ms.length,wr=active.wins+active.losses?active.wins/(active.wins+active.losses)*100:0,kd=active.deaths?active.kills/active.deaths:active.kills;
  text("statWinRate",wr.toFixed(1)+"%");text("statKD",Number(kd).toFixed(2));text("statAvgKills",g?(active.kills/g).toFixed(2):"0.00");text("statAvgBeds",g?(active.beds/g).toFixed(2):"0.00");text("statGames",g);text("statMMR",active.mmr);text("statLateELO",active.lateElo);text("statPerformance",active.cribRating);text("statFormRating",active.winstreak);
- const kitBox=$("kitStatsList");if(kitBox){const rows={};ms.filter(m=>m.type==="SCRIM").forEach(m=>{rows[m.kit]??={g:0,w:0,rp:0};rows[m.kit].g++;rows[m.kit].w+=m.result==="Win"?1:0;rows[m.kit].rp+=m.rp});kitBox.innerHTML=Object.entries(rows).map(([k,v])=>\`<div class="match-row"><span>\${esc(k)}<small class="muted"> · \${v.g} games · \${(v.w/v.g*100).toFixed(0)}% WR</small></span><b>\${v.rp>=0?"+":""}\${v.rp} RP</b></div>\`).join("")||'<div class="muted">No kit data yet.</div>'}
- const oppBox=$("opponentStatsList");if(oppBox){const rows={};ms.forEach(m=>{const o=m.opponent||((m.opponents||[]).join(", "));if(!o)return;rows[o]??={g:0,w:0};rows[o].g++;rows[o].w+=m.result==="Win"?1:0});oppBox.innerHTML=Object.entries(rows).map(([o,v])=>\`<div class="match-row"><span>\${esc(o)}</span><b>\${v.w}/\${v.g} wins</b></div>\`).join("")||'<div class="muted">No opponent data yet.</div>'}
+ const kitBox=$("kitStatsList");if(kitBox){const rows={};ms.filter(m=>m.type==="SCRIM").forEach(m=>{rows[m.kit]??={g:0,w:0,rp:0};rows[m.kit].g++;rows[m.kit].w+=m.result==="Win"?1:0;rows[m.kit].rp+=m.rp});kitBox.innerHTML=Object.entries(rows).map(([k,v])=>`<div class="match-row"><span>${esc(k)}<small class="muted"> · ${v.g} games · ${(v.w/v.g*100).toFixed(0)}% WR</small></span><b>${v.rp>=0?"+":""}${v.rp} RP</b></div>`).join("")||'<div class="muted">No kit data yet.</div>'}
+ const oppBox=$("opponentStatsList");if(oppBox){const rows={};ms.forEach(m=>{const o=m.opponent||((m.opponents||[]).join(", "));if(!o)return;rows[o]??={g:0,w:0};rows[o].g++;rows[o].w+=m.result==="Win"?1:0});oppBox.innerHTML=Object.entries(rows).map(([o,v])=>`<div class="match-row"><span>${esc(o)}</span><b>${v.w}/${v.g} wins</b></div>`).join("")||'<div class="muted">No opponent data yet.</div>'}
 }
 const __oldRender=render;
 render=function(){__oldRender();renderQoL();renderLeaderboardQoL();renderKitQoL();renderStatsQoL();};
