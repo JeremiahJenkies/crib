@@ -49,7 +49,7 @@ function findPlayer(v){return state.players.find(p=>p.id===v||String(p.username)
 function calculateRP(body,p){
  const mode=body.mode||"STANDARD_SCRIM",k=kit(body.kit),forScore=Number(body.scoreFor||0),against=Number(body.scoreAgainst||0),win=forScore>against,diff=Math.abs(forScore-against);
  const opponent=Number(body.opponentRP||p.rp||1000),expected=1/(1+Math.pow(10,(p.rp-opponent)/400));
- const expectedSwing=Math.round((win?1:0-expected)*24);
+ const expectedSwing=Math.round(((win?1:0)-expected)*24);
  const combat=Math.max(-5,Math.min(8,Math.round((Number(body.kills||0)-Number(body.deaths||0))*.75)));
  const objective=mode==="NO_BED_SCRIM"?0:Math.min(5,Number(body.bedsDestroyed||0));
  const scorePerf=Math.max(-8,Math.min(10,Math.round(diff*1.25)));
