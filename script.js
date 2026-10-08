@@ -168,9 +168,15 @@ async function createPlayer(){
 }
 async function saveScrim(){
   if(!active)return toast("Create a player first.");
-  const mode=$("scrimModeSelect").value,opp=$("winstreakOpponentSelect")?.value||null;
-  const b={playerId:active.id,mode,kit:$("scrimKitSelect").value,map:$("scrimMap").value,scoreFor:num($("scrimScoreFor").value),scoreAgainst:num($("scrimScoreAgainst").value),opponents:$("scrimOpponents").value.split(",").map(x=>x.trim()).filter(Boolean),opponentId:opp,opponentRP:num($("scrimOpponentRP").value),role:$("scrimRole").value,kills:num($("scrimKills").value),deaths:num($("scrimDeaths").value),bedsDestroyed:num($("scrimBedsDestroyed").value),placement:num($("scrimPlacement").value),duration:num($("scrimDuration").value),verified:$("scrimVerified").value==="1",notes:$("scrimNotes").value};
-  try{const d=await api("/matches/scrim",{method:"POST",body:JSON.stringify(b)});show("scrimModal",false);await refresh();openResult(d);toast("Scrim recorded")}catch(e){toast(e.message)}
+  const mode=$("scrimModeSelect").value,op=$("winstreakOpponentSelect")?.value||null;
+  const typedOpponents=$("scrimOpponents").value.split(",").map(x=>x.trim()).filter(Boolean);
+  const b={playerId:active.id,mode,kit:$("scrimKitSelect").value,map:$("scrimMap").value,scoreFor:num($("scrimScoreFor").value),scoreAgainst:num($("scrimScoreAgainst").value),opponents:typedOpponents,opponentId:op,opponentRP:num($("scrimOpponentRP").value),role:$("scrimRole").value,kills:num($("scrimKills").value),deaths:num($("scrimDeaths").value),bedsDestroyed:num($("scrimBedsDestroyed").value),placement:num($("scrimPlacement").value),duration:num($("scrimDuration").value),verified:$("scrimVerified").value==="1",notes:$("scrimNotes").value};
+  try{
+    const d=await api("/matches/scrim",{method:"POST",body:JSON.stringify(b)});
+    show("scrimModal",false);await refresh();openResult(d);
+    const auto=d.autoCreatedPlayers||[];
+    toast((d.match?.result==="Loss"?"Loss recorded · ":"Match recorded · ")+(auto.length?auto.length+" opponent profile"+(auto.length===1?"":"s")+" created":""));
+  }catch(e){toast(e.message)}
 }
 async function saveLG(){
   if(!active)return toast("Create a player first.");
