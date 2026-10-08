@@ -180,7 +180,11 @@ function drawAnalytics(){const ms=currentMatches().slice().reverse();drawCanvas(
 function updateModeFields(){
   const mode=$("scrimModeSelect")?.value||"STANDARD_SCRIM",one=mode==="WINSTREAK_1V1",noBed=mode==="NO_BED_SCRIM";
   ["winstreakOpponentFields","opponentKitFields"].forEach(id=>$(id)?.toggleAttribute("hidden",!one));
-  $("standardOpponentFields")?.toggleAttribute("hidden",one);$("scrimBedsFields")?.toggleAttribute("hidden",noBed||one);$("scrimMapFields")?.toggleAttribute("hidden",one);
+  $("standardOpponentFields")?.toggleAttribute("hidden",one);
+  $("scrimBedsFields")?.toggleAttribute("hidden",noBed);
+  $("scrimMapFields")?.toggleAttribute("hidden",false);
+  $("scrimTeamSizeFields")?.toggleAttribute("hidden",one);
+  if(one){if($("scrimTeamSize"))$("scrimTeamSize").value="1";if($("scrimResult"))$("scrimResult").value="Win";}
   if(one&&active)text("winstreakModeHint",active.winstreak);
 }
 async function createPlayer(){
@@ -190,8 +194,8 @@ async function createPlayer(){
 async function saveScrim(){
   if(!active)return toast("Create a player first.");
   const mode=$("scrimModeSelect").value,op=$("winstreakOpponentSelect")?.value||null;
-  const typedOpponents=$("scrimOpponents").value.split(",").map(x=>x.trim()).filter(Boolean);
-  const b={playerId:active.id,mode,kit:$("scrimKitSelect").value,map:$("scrimMap").value,scoreFor:num($("scrimScoreFor").value),scoreAgainst:num($("scrimScoreAgainst").value),opponents:typedOpponents,opponentId:op,opponentRP:num($("scrimOpponentRP").value),role:$("scrimRole").value,kills:num($("scrimKills").value),deaths:num($("scrimDeaths").value),bedsDestroyed:num($("scrimBedsDestroyed").value),placement:num($("scrimPlacement").value),duration:num($("scrimDuration").value),verified:$("scrimVerified").value==="1",notes:$("scrimNotes").value};
+  const typedOpponents=$("scrimOpponents").value.split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean);
+  const b={playerId:active.id,mode,format:mode==="WINSTREAK_1V1"?"1v1":($("scrimTeamSize")?.value||"4")+"v"+($("scrimTeamSize")?.value||"4"),teamSize:num($("scrimTeamSize")?.value||4),result:$("scrimResult").value,kit:$("scrimKitSelect").value,kitRule:$("scrimKitRule")?.value||"Allowed",map:$("scrimMap").value,scoreFor:num($("scrimScoreFor").value),scoreAgainst:num($("scrimScoreAgainst").value),opponents:typedOpponents,opponentId:op,opponentRP:num($("scrimOpponentRP").value),role:$("scrimRole").value,kills:num($("scrimKills").value),deaths:num($("scrimDeaths").value),bedsDestroyed:num($("scrimBedsDestroyed").value),placement:num($("scrimPlacement").value),duration:num($("scrimDuration").value),verified:$("scrimVerified").value==="1",notes:$("scrimNotes").value};
   try{
     const d=await api("/matches/scrim",{method:"POST",body:JSON.stringify(b)});
     show("scrimModal",false);await refresh();openResult(d);
