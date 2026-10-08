@@ -187,6 +187,13 @@ function openResult(d){
   text("rpResultValue",(delta>=0?"+":"")+delta);text("rpResultTitle",d.match?.type==="LG"?"Late Game Rating":"Match Rating");text("rpResultSubtitle",d.match?.mode?modeName(d.match.mode)+" · server calculated":"Server-calculated result");
   const rows=Object.entries(bd).filter(([k])=>!["final"].includes(k));$("rpBreakdownRows").innerHTML=rows.map(([k,v])=>`<div class="breakdown-row"><span>${esc(prettyKey(k))}</span><b>${esc(prettyValue(v))}</b></div>`).join("");
   text("rpRankChange",active?rankData(active.rp).label:"");
+  const created=d.autoCreatedPlayers||[];
+  const box=$("autoProfileResults");
+  if(box){
+    box.innerHTML=created.length
+      ? `<div class="auto-profile-panel"><div class="auto-profile-title">AUTO-CREATED PLAYER PROFILE${created.length===1?"":"S"}</div><p class="muted-line">These credentials were generated automatically for the opponent. Save them now — the password is only shown here.</p>${created.map(p=>`<div class="credential-card"><div><span>PLAYER</span><b>${esc(p.displayName)}</b></div><div><span>USERNAME</span><b>${esc(p.username)}</b></div><div><span>PASSWORD</span><b class="credential-password">${esc(p.password)}</b></div><div><span>STARTING RP</span><b>${num(p.rp)}</b></div></div>`).join("")}</div>`
+      : "";
+  }
 }
 async function selectPlayer(id){active=players.find(p=>p.id===id)||active;saveActive();renderAll();openPage("dashboard")}
 window.selectPlayer=selectPlayer;
