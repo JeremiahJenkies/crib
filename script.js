@@ -32,7 +32,7 @@ function openPage(page){
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   $(page+"-page")?.classList.add("active");
   document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="leaderboards"?"Leaderboards":page.replace(/^[a-z]/,x=>x.toUpperCase()));
+  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="leaderboards"?"Leaderboards":page==="late"?"Late Games":page==="winstreak"?"Winstreak 1v1":page==="scrims"?"Scrims":page==="kits"?"Kit Library":page==="compare"?"Kit Compare":page==="players"?"Players":page==="statistics"?"Statistics":page==="admin"?"Admin":page);
   window.scrollTo({top:0,behavior:"smooth"});
   if(page==="statistics")drawAnalytics();
 }
@@ -116,9 +116,30 @@ function renderLeaderboard(){
   const box=$("leaderboardTable");if(!box)return;
   const type=$("leaderboardFilter")?.value||"overall";
   const arr=[...players];
-  const score=p=>{const g=p.wins+p.losses,wr=g?p.wins/g:0;return type==="highest-rp"?p.rp:type==="highest-streak"?p.bestStreak:type==="highest-performance"?(p.performanceRating||p.cribRating):type==="most-wins"?p.wins:type==="best-winrate"?wr:p.cribRating};
+  // Build win/loss totals from the actual match vault so Late Games count too.
+  const records=new Map(players.map(p=>[p.id,{games:0,wins:0}]));
+  matches.forEach(m=>{
+    const r=records.get(m.playerId);if(!r)return;
+    r.games++;
+    if(m.result==="Win")r.wins++;
+  });
+  const stats=p=>records.get(p.id)||{games:0,wins:0};
+  const score=p=>{
+    const s=stats(p),wr=s.games?s.wins/s.games:0;
+    return type==="highest-rp"?p.rp:
+      type==="highest-streak"?p.bestStreak:
+      type==="highest-performance"?(p.performanceRating||p.cribRating):
+      type==="most-wins"?s.wins:
+      type==="best-winrate"?wr:
+      p.cribRating;
+  };
   arr.sort((a,b)=>num(score(b))-num(score(a)));
-  box.innerHTML=arr.map((p,i)=>`<div class="leader-row"><span><b>#${i+1} · ${esc(p.displayName)}</b><small>${esc(rankData(p.rp).label)} · ${p.wins}-${p.losses} · ${p.winstreak} streak</small></span><strong>${type==="best-winrate"?(score(p)*100).toFixed(1)+"%":num(score(p))}</strong></div>`).join("")||'<div class="leader-row">No players yet.</div>';
+  box.innerHTML=arr.map((p,i)=>{
+    const s=stats(p),wr=s.games?s.wins/s.games*100:0;
+    const record=s.games?s.wins+"-"+(s.games-s.wins):"0-0";
+    const value=type==="best-winrate"?wr.toFixed(1)+"%":num(score(p));
+    return `<div class="leader-row"><span><b>#${i+1} · ${esc(p.displayName)}</b><small>${esc(rankData(p.rp).label)} · ${record} · ${p.winstreak} streak · ${s.games} games</small></span><strong>${value}</strong></div>`;
+  }).join("")||'<div class="leader-row">No players yet.</div>';
 }
 function renderWinstreak(){
   const box=$("winstreakSummary");if(!box||!active)return;
