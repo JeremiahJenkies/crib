@@ -43,17 +43,16 @@ function generatePassword(username){
  const suffix=crypto.randomBytes(4).toString("hex");
  return username+"-"+suffix;
 }
-function ensureOpponentProfiles(names,excludeId){
+function ensureOpponentProfiles(names,excludeId,startingRP=1000){
  const created=[];
  for(const raw of names||[]){
   const displayName=String(raw||"").trim();if(!displayName)continue;
-  const existing=findPlayer(displayName);
-  if(existing)continue;
+  if(findPlayer(displayName)||state.players.some(p=>String(p.displayName||"").toLowerCase()===displayName.toLowerCase()))continue;
   const username=normalizeUsername(displayName),password=generatePassword(username);
-  const p=normalizePlayer({id:id("p"),username,displayName,passwordHash:hash(password)});
+  const p=normalizePlayer({id:id("p"),username,displayName,passwordHash:hash(password),rp:Math.max(0,startingRP)});
   p.autoCreated=true;p.createdFromMatch=true;p.initialCredentialsIssuedAt=new Date().toISOString();
   state.players.push(p);
-  created.push({id:p.id,displayName:p.displayName,username,password});
+  created.push({id:p.id,displayName:p.displayName,username,password,rp:p.rp});
  }
  return created;
 }
@@ -122,8 +121,21 @@ const server=http.createServer(async(req,res)=>{
    if(mode==="NO_BED_SCRIM")b.bedsDestroyed=0;
    const calc=calculateRP(b,p);
    const opponentNames=Array.isArray(b.opponents)?b.opponents:(b.opponents?[String(b.opponents)]:[]);
-   const autoCreatedPlayers=!calc.win?ensureOpponentProfiles(opponentNames,p.id):[];
+   const autoCreatedPlayers=!calc.win?ensureOpponentProfiles(opponentNames,p.id,Math.max(0,1000+Math.abs(calc.final))):[];
    const op=findPlayer(b.opponentId||"");
+   if(!calc.win&&autoCreatedPlayers.length){
+    for(const created of autoCreatedPlayers){
+     const cp=findPlayer(created.id);
+     if(cp){
+      cp.wins+=1;
+      cp.winstreak+=1;
+      cp.bestStreak=Math.max(cp.bestStreak,cp.winstreak);
+      cp.cribRating=Math.max(0,Math.round(cp.cribRating+Math.abs(calc.final)*.65));
+      cp.performanceRating=Math.max(0,Math.round(cp.performanceRating+Math.abs(calc.final)*.6));
+      cp.history.push({date:new Date().toISOString(),rp:cp.rp,change:Math.abs(calc.final),event:"AUTO OPPONENT WIN"});
+     }
+    }
+   }
    const resolvedOpponents=opponentNames.map(name=>findPlayer(name)?.displayName||name);
    const match={id:id("scrim"),type:"SCRIM",mode,playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents,kit:calc.kit,map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),result:calc.win?"Win":"Loss",rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,verified:Boolean(b.verified),notes:String(b.notes||""),autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt:new Date().toISOString()};
    const oldStreak=p.winstreak;p.rp=Math.max(0,p.rp+calc.final);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.bedStreak=match.bedsDestroyed>0?p.bedStreak+match.bedsDestroyed:0;p.bestBedStreak=Math.max(p.bestBedStreak,p.bedStreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.performanceRating=Math.max(0,Math.round((p.performanceRating*.85)+((1000+calc.final*4)*.15)));p.recentForm=Math.round(p.recentForm*.7+(calc.final>0?100:0)*.3);p.mmr=Math.max(0,Math.round(p.mmr+calc.expectedSwing));p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode,fromStreak:oldStreak});
