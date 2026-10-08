@@ -157,23 +157,26 @@
   <div class="modal-head"><div><h2>Record Scrim</h2><p>RP is calculated server-side.</p></div><button class="close" data-close-modal="scrimModal">×</button></div>
   <div class="modal-body">
     <div class="form-grid">
-      <label>Format<select id="scrimModeSelect"><option value="STANDARD_SCRIM">Standard Scrim</option><option value="NO_BED_SCRIM">No-Bed Scrim</option><option value="WINSTREAK_1V1">Winstreak 1v1</option></select></label>
-      <label id="scrimKitFields">Kit<select id="scrimKitSelect"></select></label>
+      <label>Scrim format<select id="scrimModeSelect"><option value="STANDARD_SCRIM">Team Scrim</option><option value="NO_BED_SCRIM">No-Bed Scrim</option><option value="WINSTREAK_1V1">Winstreak 1v1</option></select><small class="field-hint">Team scrims use a real BedWars team format; Winstreak is a separate 1v1 format.</small></label>
+      <label id="scrimTeamSizeFields">Team size<select id="scrimTeamSize"><option value="4">4v4</option><option value="2">2v2</option><option value="3">3v3</option><option value="1">1v1</option></select></label>
+      <label>Result<select id="scrimResult"><option value="Win">Win</option><option value="Loss">Loss</option></select></label>
+      <label id="scrimKitFields">Your kit<select id="scrimKitSelect"></select></label>
       <label id="opponentKitFields" hidden>Opponent kit<select id="winstreakOpponentKitSelect"></select></label>
+      <label>Kit rules<select id="scrimKitRule"><option>Allowed</option><option>No Kits</option><option>Selected Kits Only</option></select></label>
       <label id="scrimMapFields">Map<input id="scrimMap" placeholder="e.g. Blossom"></label>
-      <label>Score for<input id="scrimScoreFor" type="number" min="0" value="7"></label>
-      <label>Score against<input id="scrimScoreAgainst" type="number" min="0" value="4"></label>
-      <label id="standardOpponentFields">Opponents<input id="scrimOpponents" placeholder="Name, Name"><small class="field-hint">Unknown players are created automatically when a result is submitted.</small></label><label id="lossRPFields">Loss RP<input id="scrimLossRP" type="number" value="0" min="0" readonly><small class="field-hint">Calculated from the result. Loss amount is never typed manually.</small></label>
+      <label class="full" id="standardOpponentFields">Opponent roster<textarea id="scrimOpponents" rows="3" placeholder="One Roblox username per line"></textarea><small class="field-hint">Every named opponent is automatically given a CRIB profile, even when your team wins.</small></label>
       <label id="winstreakOpponentFields" hidden>Opponent<select id="winstreakOpponentSelect"></select></label>
       <label>Average opponent RP<input id="scrimOpponentRP" type="number" min="0" placeholder="Optional"></label>
       <label>Role<select id="scrimRole"><option>Flex</option><option>Rush</option><option>Defender</option><option>Support</option><option>Resource</option><option>Mid</option></select></label>
       <label>Kills<input id="scrimKills" type="number" min="0" value="0"></label>
       <label>Deaths<input id="scrimDeaths" type="number" min="0" value="0"></label>
       <label id="scrimBedsFields">Beds destroyed<input id="scrimBedsDestroyed" type="number" min="0" value="0"></label>
+      <label>Round score<input id="scrimScoreFor" type="number" min="0" value="1"></label>
+      <label>Opponent round score<input id="scrimScoreAgainst" type="number" min="0" value="0"></label>
       <label>Placement<input id="scrimPlacement" type="number" min="1" value="1"></label>
-      <label>Duration<input id="scrimDuration" type="number" min="0" value="8"></label>
+      <label>Duration (minutes)<input id="scrimDuration" type="number" min="0" value="8"></label>
       <label>Verification<select id="scrimVerified"><option value="0">Unverified</option><option value="1">Verified</option></select></label>
-      <label class="full">Notes<textarea id="scrimNotes" rows="3" placeholder="Optional notes"></textarea></label>
+      <label class="full">Notes<textarea id="scrimNotes" rows="3" placeholder="Optional: roster notes, bans, proof, etc."></textarea></label>
     </div>
   </div>
   <div class="modal-foot"><button class="ghost" data-close-modal="scrimModal">Cancel</button><button class="primary" id="saveScrimBtn">Submit Scrim</button></div>
