@@ -121,21 +121,10 @@ const server=http.createServer(async(req,res)=>{
    if(mode==="NO_BED_SCRIM")b.bedsDestroyed=0;
    const calc=calculateRP(b,p);
    const opponentNames=Array.isArray(b.opponents)?b.opponents:(b.opponents?[String(b.opponents)]:[]);
-   const autoCreatedPlayers=!calc.win?ensureOpponentProfiles(opponentNames,p.id,Math.max(0,1000+Math.abs(calc.final))):[];
+   const autoCreatedPlayers=opponentNames.length
+    ?ensureOpponentProfiles(opponentNames,p.id,Math.max(0,1000+(calc.win?0:Math.abs(calc.final))))
+    :[];
    const op=findPlayer(b.opponentId||"");
-   if(!calc.win&&autoCreatedPlayers.length){
-    for(const created of autoCreatedPlayers){
-     const cp=findPlayer(created.id);
-     if(cp){
-      cp.wins+=1;
-      cp.winstreak+=1;
-      cp.bestStreak=Math.max(cp.bestStreak,cp.winstreak);
-      cp.cribRating=Math.max(0,Math.round(cp.cribRating+Math.abs(calc.final)*.65));
-      cp.performanceRating=Math.max(0,Math.round(cp.performanceRating+Math.abs(calc.final)*.6));
-      cp.history.push({date:new Date().toISOString(),rp:cp.rp,change:Math.abs(calc.final),event:"AUTO OPPONENT WIN"});
-     }
-    }
-   }
    const resolvedOpponents=opponentNames.map(name=>findPlayer(name)?.displayName||name);
    const match={id:id("scrim"),type:"SCRIM",mode,playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents,kit:calc.kit,map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),result:calc.win?"Win":"Loss",rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,verified:Boolean(b.verified),notes:String(b.notes||""),autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt:new Date().toISOString()};
    const oldStreak=p.winstreak;p.rp=Math.max(0,p.rp+calc.final);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.bedStreak=match.bedsDestroyed>0?p.bedStreak+match.bedsDestroyed:0;p.bestBedStreak=Math.max(p.bestBedStreak,p.bedStreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.performanceRating=Math.max(0,Math.round((p.performanceRating*.85)+((1000+calc.final*4)*.15)));p.recentForm=Math.round(p.recentForm*.7+(calc.final>0?100:0)*.3);p.mmr=Math.max(0,Math.round(p.mmr+calc.expectedSwing));p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode,fromStreak:oldStreak});
@@ -147,8 +136,12 @@ const server=http.createServer(async(req,res)=>{
    const b=await body(req),p=findPlayer(b.playerId||b.player||"");if(!p)return json(res,404,{error:"Player not found."});
    const a=Number(b.scoreFor),z=Number(b.scoreAgainst);if(!Number.isFinite(a)||!Number.isFinite(z)||a===z)return json(res,400,{error:"LG requires two different scores."});
    const diff=a-z,win=diff>0,rp=Math.max(-60,Math.min(60,Math.round((win?24:-22)+diff*2)));
-   const match={id:id("lg"),type:"LG",playerId:p.id,opponent:String(b.opponent||"Unknown"),map:"Reservoir",matchType:"Custom Match",scoreFor:a,scoreAgainst:z,result:win?"Win":"Loss",rp,createdAt:new Date().toISOString()};
-   p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.lateElo=Math.max(0,p.lateElo+Math.round(diff*12));p.lateGames.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:rp,event:"LATE GAME"});state.matches.push(match);await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:{base:win?24:-22,scoreDifferential:diff*2,final:rp}});
+   const opponentName=String(b.opponent||"").trim();
+   const autoCreatedPlayers=opponentName
+    ?ensureOpponentProfiles([opponentName],p.id,Math.max(0,1000+(win?0:Math.abs(rp))))
+    :[];
+   const match={id:id("lg"),type:"LG",playerId:p.id,opponent:opponentName||"Unknown",map:"Reservoir",matchType:"Custom Match",scoreFor:a,scoreAgainst:z,result:win?"Win":"Loss",rp,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt:new Date().toISOString()};
+   p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.lateElo=Math.max(0,p.lateElo+Math.round(diff*12));p.lateGames.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:rp,event:"LATE GAME"});state.matches.push(match);await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:{base:win?24:-22,scoreDifferential:diff*2,final:rp},autoCreatedPlayers});
   }
   if(u.pathname==="/api/matches"&&req.method==="GET"){const pid=u.searchParams.get("playerId");return json(res,200,{matches:state.matches.filter(m=>!pid||m.playerId===pid).slice().reverse()})}
   if(u.pathname==="/api/admin/config"&&req.method==="PUT"){
