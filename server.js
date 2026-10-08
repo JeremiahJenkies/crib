@@ -150,13 +150,13 @@ const server=http.createServer(async(req,res)=>{
    const op=findPlayer(b.opponentId||"");
    const resolvedOpponents=opponentNames.map(name=>findPlayer(name)?.displayName||name);
    const match={id:matchId,type:"SCRIM",mode,format:String(b.format||"4v4"),teamSize:Number(b.teamSize||4),playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents,kit:calc.kit,kitRule:String(b.kitRule||"Allowed"),map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),result:calc.win?"Win":"Loss",kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),verified:Boolean(b.verified),notes:String(b.notes||""),rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt};
-   for(const created of autoCreatedPlayers){
-    const cp=findPlayer(created.id);
-    if(cp)applyOpponentResult(cp,match,!calc.win,-calc.final);
+   for(const opponentName of opponentNames){
+    const cp=findPlayer(opponentName);
+    if(cp&&cp.id!==p.id)applyOpponentResult(cp,match,!calc.win,-calc.final);
    }
    const oldStreak=p.winstreak;p.rp=Math.max(0,p.rp+calc.final);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.bedStreak=match.bedsDestroyed>0?p.bedStreak+match.bedsDestroyed:0;p.bestBedStreak=Math.max(p.bestBedStreak,p.bedStreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.performanceRating=Math.max(0,Math.round((p.performanceRating*.85)+((1000+calc.final*4)*.15)));p.recentForm=Math.round(p.recentForm*.7+(calc.final>0?100:0)*.3);p.mmr=Math.max(0,Math.round(p.mmr+calc.expectedSwing));p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode,fromStreak:oldStreak});
    state.matches.push(match);
-   if(op&&op.id!==p.id&&!autoCreatedPlayers.some(x=>x.id===op.id))applyOpponentResult(op,match,!calc.win,-calc.final);
+
    await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:calc,rank:rankData(p.rp),autoCreatedPlayers});
   }
   if(u.pathname==="/api/matches/lg"&&req.method==="POST"){
