@@ -33,6 +33,30 @@ function rankData(rp){
 }
 function id(prefix){return prefix+"_"+crypto.randomUUID().replaceAll("-","").slice(0,12)}
 function hash(v){return crypto.createHash("sha256").update(String(v)).digest("hex")}
+function normalizeUsername(v){
+ const base=String(v||"player").trim().toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,18)||"player";
+ let u=base,i=2;
+ while(state.players.some(p=>String(p.username).toLowerCase()===u.toLowerCase()))u=base+i++;
+ return u;
+}
+function generatePassword(username){
+ const suffix=crypto.randomBytes(4).toString("hex");
+ return username+"-"+suffix;
+}
+function ensureOpponentProfiles(names,excludeId){
+ const created=[];
+ for(const raw of names||[]){
+  const displayName=String(raw||"").trim();if(!displayName)continue;
+  const existing=findPlayer(displayName);
+  if(existing)continue;
+  const username=normalizeUsername(displayName),password=generatePassword(username);
+  const p=normalizePlayer({id:id("p"),username,displayName,passwordHash:hash(password)});
+  p.autoCreated=true;p.createdFromMatch=true;p.initialCredentialsIssuedAt=new Date().toISOString();
+  state.players.push(p);
+  created.push({id:p.id,displayName:p.displayName,username,password});
+ }
+ return created;
+}
 function kit(name){return state.kits.find(k=>String(k.name).toLowerCase()===String(name||"None").toLowerCase())||state.kits[0]}
 function kitMultiplierFor(k){
  if(!k||k.name==="None")return Number(state.config.noKitMultiplier??1.20);
@@ -96,12 +120,16 @@ const server=http.createServer(async(req,res)=>{
    if(!["STANDARD_SCRIM","NO_BED_SCRIM","WINSTREAK_1V1"].includes(mode))return json(res,400,{error:"Invalid Scrim mode."});
    if(mode==="WINSTREAK_1V1"){if(!b.opponentId)return json(res,400,{error:"Winstreak 1v1 requires a registered opponent."});if(!findPlayer(b.opponentId)||b.opponentId===p.id)return json(res,400,{error:"Choose another registered player."});if(!state.config.winstreak1v1KitsEnabled)b.kit="None"}
    if(mode==="NO_BED_SCRIM")b.bedsDestroyed=0;
-   const calc=calculateRP(b,p),op=findPlayer(b.opponentId||"");
-   const match={id:id("scrim"),type:"SCRIM",mode,playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:Array.isArray(b.opponents)?b.opponents:[],kit:calc.kit,map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),result:calc.win?"Win":"Loss",rp:calc.final,performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,verified:Boolean(b.verified),notes:String(b.notes||""),createdAt:new Date().toISOString()};
+   const calc=calculateRP(b,p);
+   const opponentNames=Array.isArray(b.opponents)?b.opponents:(b.opponents?[String(b.opponents)]:[]);
+   const autoCreatedPlayers=!calc.win?ensureOpponentProfiles(opponentNames,p.id):[];
+   const op=findPlayer(b.opponentId||"");
+   const resolvedOpponents=opponentNames.map(name=>findPlayer(name)?.displayName||name);
+   const match={id:id("scrim"),type:"SCRIM",mode,playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents,kit:calc.kit,map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),result:calc.win?"Win":"Loss",rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,verified:Boolean(b.verified),notes:String(b.notes||""),autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt:new Date().toISOString()};
    const oldStreak=p.winstreak;p.rp=Math.max(0,p.rp+calc.final);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.bedStreak=match.bedsDestroyed>0?p.bedStreak+match.bedsDestroyed:0;p.bestBedStreak=Math.max(p.bestBedStreak,p.bedStreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.performanceRating=Math.max(0,Math.round((p.performanceRating*.85)+((1000+calc.final*4)*.15)));p.recentForm=Math.round(p.recentForm*.7+(calc.final>0?100:0)*.3);p.mmr=Math.max(0,Math.round(p.mmr+calc.expectedSwing));p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode,fromStreak:oldStreak});
    state.matches.push(match);
    if(op){op.winstreak=calc.win?0:op.winstreak+1;op.bestStreak=Math.max(op.bestStreak,op.winstreak);op.matches.push(match.id);op.history.push({date:match.createdAt,rp:op.rp,change:0,event:"OPPONENT"})}
-   await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:calc,rank:rankData(p.rp)});
+   await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:calc,rank:rankData(p.rp),autoCreatedPlayers});
   }
   if(u.pathname==="/api/matches/lg"&&req.method==="POST"){
    const b=await body(req),p=findPlayer(b.playerId||b.player||"");if(!p)return json(res,404,{error:"Player not found."});
