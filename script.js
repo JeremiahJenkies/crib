@@ -189,7 +189,7 @@ function updateModeFields(){
   $("scrimBedsFields")?.toggleAttribute("hidden",noBed);
   $("scrimMapFields")?.toggleAttribute("hidden",false);
   $("scrimTeamSizeFields")?.toggleAttribute("hidden",one);
-  if(one){if($("scrimTeamSize"))$("scrimTeamSize").value="1";if($("scrimResult"))$("scrimResult").value="Win";}
+  if(one&&$("scrimTeamSize"))$("scrimTeamSize").value="1";
   if(one&&active)text("winstreakModeHint",active.winstreak);
 }
 async function createPlayer(){
