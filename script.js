@@ -66,7 +66,7 @@ function renderPlayer(){
   text("currentRPValue",p.rp);text("progressLow",rd.floor+" RP");text("progressTarget",rd.next>=6000?"MAX":rd.next+" RP");text("rankFootnote",rd.next>=6000?"Maximum visible rank reached.":"Need "+Math.max(0,rd.next-p.rp)+" RP to promote.");
   $("rankProgressBar")?.style.setProperty("width",rd.progress+"%");$("rankArt")?.setAttribute("src",rankImg(p.rp));$("rankArt")?.setAttribute("alt",rd.label+" rank emblem");
   text("profileAvatar",initials(p.displayName));text("profileDisplayName",p.displayName);text("profileUsername","@"+p.username);text("rankChip",rd.label);
-  text("profileRP",p.rp);text("profilePeakRP",p.peakRP);text("profileWins",p.wins);text("profileWinsLosses",p.wins+" / "+p.losses);text("profileWinRate",wr.toFixed(1)+"%");text("profileGames",games+" games");text("profileCribRating",p.cribRating??1000);text("profilePercentile",games?"Active competitor":"Unranked · waiting for matches");
+  text("profileRP",p.rp);text("profilePeakRP",p.peakRP);text("profileWins",p.wins);text("profileWinsLosses",p.wins+" / "+p.losses);text("profileWinRate",wr.toFixed(1)+"%");text("profileGames",games+" games");text("profileCribRating",p.cribRating??1000);text("profilePercentile",num(p.mmrGames)<10?"Provisional MMR · "+num(p.mmrGames)+"/10 matches":"Established MMR · "+(num(p.mmrGames))+" rated matches");
   $("profileRankArt")?.setAttribute("src",rankImg(p.rp));$("divisionImg")?.setAttribute("src",rankImg(p.rp));
   text("divisionName",rd.label);text("divisionProgressText",rd.next>=6000?"MAX RANK":p.rp+" / "+rd.next+" RP");$("divisionProgressBar")?.style.setProperty("width",rd.progress+"%");
   text("rankProgressSummary",rd.next>=6000?"You have reached Radiant I.":"You are "+rd.progress+"% through "+rd.label+" toward "+rd.next+" RP.");
@@ -199,7 +199,7 @@ async function createPlayer(){
 async function saveScrim(){
   if(!active)return toast("Create a player first.");
   const mode=$("scrimModeSelect").value,op=$("winstreakOpponentSelect")?.value||null;
-  const typedOpponents=$("scrimOpponents").value.split(/[\\n,]+/).map(x=>x.trim()).filter(Boolean);
+  const typedOpponents=$("scrimOpponents").value.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
   const b={playerId:active.id,mode,format:mode==="WINSTREAK_1V1"?"1v1":($("scrimTeamSize")?.value||"4")+"v"+($("scrimTeamSize")?.value||"4"),teamSize:num($("scrimTeamSize")?.value||4),result:$("scrimResult").value,kit:$("scrimKitSelect").value,kitRule:$("scrimKitRule")?.value||"Allowed",map:$("scrimMap").value,scoreFor:num($("scrimScoreFor").value),scoreAgainst:num($("scrimScoreAgainst").value),opponents:typedOpponents,opponentId:op,opponentRP:num($("scrimOpponentRP").value),role:$("scrimRole").value,kills:num($("scrimKills").value),deaths:num($("scrimDeaths").value),bedsDestroyed:num($("scrimBedsDestroyed").value),placement:num($("scrimPlacement").value),duration:num($("scrimDuration").value),verified:$("scrimVerified").value==="1",notes:$("scrimNotes").value};
   try{
     const d=await api("/matches/scrim",{method:"POST",body:JSON.stringify(b)});
