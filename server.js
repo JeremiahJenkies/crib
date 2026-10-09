@@ -107,11 +107,11 @@ function calculateRP(body,p){
  const explicitResult=String(body.result||"").toLowerCase();
  const win=explicitResult?explicitResult==="win":forScore>against;
  const diff=Math.abs(forScore-against);
- const opponent=Number(body.opponentRP||p.mmr||1000),expected=expectedScore(Number(p.mmr||1000),opponent);
+ const opponent=Number(body.opponentRP||1000),expected=expectedScore(Number(p.mmr||1000),opponent);
  const expectedSwing=Math.round(((win?1:0)-expected)*24);
  const combat=Math.max(-5,Math.min(8,Math.round((Number(body.kills||0)-Number(body.deaths||0))*.75)));
  const objective=mode==="NO_BED_SCRIM"?0:Math.min(5,Number(body.bedsDestroyed||0));
- const scorePerf=Math.max(-8,Math.min(10,Math.round(diff*1.25)));
+ const scorePerf=Math.max(-8,Math.min(10,Math.round((win?1:-1)*diff*1.25)));
  const streak=Math.min(Number(p.winstreak||0),15);
  const streakBonus=win?Math.round(streak*.5):0;
  const base=win?Number(state.config.baseWin??30):Number(state.config.baseLoss??-24);
@@ -155,22 +155,29 @@ const server=http.createServer(async(req,res)=>{
    if(!["STANDARD_SCRIM","NO_BED_SCRIM","WINSTREAK_1V1"].includes(mode))return json(res,400,{error:"Invalid Scrim mode."});
    if(mode==="WINSTREAK_1V1"){if(!b.opponentId)return json(res,400,{error:"Winstreak 1v1 requires a registered opponent."});if(!findPlayer(b.opponentId)||b.opponentId===p.id)return json(res,400,{error:"Choose another registered player."});if(!state.config.winstreak1v1KitsEnabled)b.kit="None"}
    if(mode==="NO_BED_SCRIM")b.bedsDestroyed=0;
-   const calc=calculateRP(b,p);
    const opponentNames=opponentNamesFromBody(b).filter(name=>!findPlayer(name)||findPlayer(name).id!==p.id);
    const autoCreatedPlayers=opponentNames.length
     ?ensureOpponentProfiles(opponentNames,p.id,1000)
     :[];
-   const matchId=id("scrim"),createdAt=new Date().toISOString();
    const op=findPlayer(b.opponentId||"");
+   // Treat a registered 1v1 opponent and a typed roster uniformly; deduplicate by player id.
+   const opponentProfiles=[...new Map([
+    ...opponentNames.map(name=>findPlayer(name)),
+    ...(op?[op]:[])
+   ].filter(cp=>cp&&cp.id!==p.id).map(cp=>[cp.id,cp])).values()];
+   const calc=calculateRP(b,p);
+   const matchId=id("scrim"),createdAt=new Date().toISOString();
    const resolvedOpponents=opponentNames.map(name=>findPlayer(name)?.displayName||name);
-   const match={id:matchId,type:"SCRIM",mode,format:String(b.format||"4v4"),teamSize:Number(b.teamSize||4),playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents,kit:calc.kit,kitRule:String(b.kitRule||"Allowed"),map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),result:calc.win?"Win":"Loss",kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),verified:Boolean(b.verified),notes:String(b.notes||""),rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt};
-   const opponentProfiles=opponentNames.map(name=>findPlayer(name)).filter(cp=>cp&&cp.id!==p.id);
-   const averageOpponentMmr=opponentProfiles.length?opponentProfiles.reduce((s,x)=>s+Number(x.mmr||1000),0)/opponentProfiles.length:Number(b.opponentRP||1000);
+   const match={id:matchId,type:"SCRIM",mode,format:String(b.format||"4v4"),teamSize:Number(b.teamSize||4),playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents.length?resolvedOpponents:(op?[op.displayName]:[]),kit:calc.kit,kitRule:String(b.kitRule||"Allowed"),map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),result:calc.win?"Win":"Loss",kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),verified:Boolean(b.verified),notes:String(b.notes||""),rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt};
+   const playerMmrBefore=Number(p.mmr||1000);
+   const playerScrimMmrBefore=Number(p.scrimMmr||1000);
+   const averageOpponentMmr=opponentProfiles.length?opponentProfiles.reduce((sum,x)=>sum+Number(x.mmr??1000),0)/opponentProfiles.length:Number(b.opponentRP||1000);
+   const averageOpponentScrimMmr=opponentProfiles.length?opponentProfiles.reduce((sum,x)=>sum+Number(x.scrimMmr??x.mmr??1000),0)/opponentProfiles.length:Number(b.opponentRP||1000);
    const playerRating=applyRating(p,averageOpponentMmr,calc.win,"mmr","mmrGames");
-   const playerScrimRating=applyRating(p,averageOpponentMmr,calc.win,"scrimMmr","scrimMmrGames");
+   const playerScrimRating=applyRating(p,averageOpponentScrimMmr,calc.win,"scrimMmr","scrimMmrGames");
    for(const cp of opponentProfiles){
-    applyOpponentResult(cp,match,!calc.win,-calc.final,Number(p.mmr||1000),"mmr","mmrGames");
-    applyRating(cp,Number(p.mmr||1000),!calc.win,"scrimMmr","scrimMmrGames");
+    applyOpponentResult(cp,match,!calc.win,-calc.final,playerMmrBefore,"mmr","mmrGames");
+    applyRating(cp,playerScrimMmrBefore,!calc.win,"scrimMmr","scrimMmrGames");
    }
    const oldStreak=p.winstreak;p.rp=Math.max(0,p.rp+calc.final);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.bedStreak=match.bedsDestroyed>0?p.bedStreak+match.bedsDestroyed:0;p.bestBedStreak=Math.max(p.bestBedStreak,p.bedStreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.performanceRating=Math.max(0,Math.round((p.performanceRating*.85)+((1000+calc.final*4)*.15)));p.recentForm=Math.round(p.recentForm*.7+(calc.final>0?100:0)*.3);p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode,fromStreak:oldStreak,mmr:p.mmr,mmrChange:playerRating.change,scrimMmr:p.scrimMmr,scrimMmrChange:playerScrimRating.change});
    state.matches.push(match);
