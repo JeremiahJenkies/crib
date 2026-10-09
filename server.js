@@ -189,12 +189,14 @@ const server=http.createServer(async(req,res)=>{
    const opponentProfile=findPlayer(opponentName);
    const match={id:id("lg"),type:"LG",playerId:p.id,opponent:opponentName||"Unknown",opponentId:opponentProfile?.id||null,map:"Reservoir",matchType:"Late Game",scoreFor:a,scoreAgainst:z,result:win?"Win":"Loss",rp,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt:new Date().toISOString()};
    const opponentMmr=Number(opponentProfile?.lateElo||1000);
+   const playerMmrBefore=Number(p.lateElo||1000);
+   const opponentMmrBefore=Number(opponentProfile?.lateElo||1000);
    const playerLateRating=applyRating(p,opponentMmr,win,"lateElo","lateEloGames");
    if(opponentProfile&&opponentProfile.id!==p.id){
-    applyOpponentResult(opponentProfile,match,!win,-rp,Number(p.lateElo||1000),"lateElo","lateEloGames");
+    applyOpponentResult(opponentProfile,match,!win,-rp,playerMmrBefore,"lateElo","lateEloGames");
     opponentProfile.lateGames.push(match.id);
    }
-   p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.lateGames.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:rp,event:"LATE GAME",lateElo:p.lateElo,lateEloChange:playerLateRating.change});state.matches.push(match);await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:{base:win?24:-22,scoreDifferential:diff*2,final:rp,lateEloChange:playerLateRating.change,lateElo:p.lateElo},autoCreatedPlayers});
+   p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=win?1:0;p.losses+=win?0:1;p.winstreak=win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.matches.push(match.id);p.lateGames.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:rp,event:"LATE GAME",lateElo:p.lateElo,lateEloChange:playerLateRating.change,opponentMmrBefore});state.matches.push(match);await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:{base:win?24:-22,scoreDifferential:diff*2,final:rp,lateEloChange:playerLateRating.change,lateElo:p.lateElo},autoCreatedPlayers});
 
   }
   if(u.pathname==="/api/matches"&&req.method==="GET"){const pid=u.searchParams.get("playerId");return json(res,200,{matches:state.matches.filter(m=>!pid||m.playerId===pid).slice().reverse()})}
