@@ -129,6 +129,11 @@ function renderLeaderboard(){
     return type==="highest-rp"?p.rp:
       type==="highest-streak"?p.bestStreak:
       type==="highest-performance"?(p.performanceRating||p.cribRating):
+      type==="highest-mmr"?p.mmr:
+      type==="highest-scrim-mmr"?(p.scrimMmr||p.mmr):
+      type==="highest-late-elo"?p.lateElo:
+      type==="most-beds"?p.beds:
+      type==="most-kills"?p.kills:
       type==="most-wins"?s.wins:
       type==="best-winrate"?wr:
       p.cribRating;
