@@ -11,3 +11,79 @@
 .credential-card b{font-size:13px;overflow-wrap:anywhere}
 .credential-password{color:#c4b5fd}
 @media(max-width:620px){.credential-card{grid-template-columns:1fr}}
+
+
+/* CRIB Halloween seasonal theme — October */
+:root{
+  color-scheme:dark;
+  --bg:#090704;
+  --panel:#100b08;
+  --panel2:#19100b;
+  --line:#382315;
+  --text:#fff7ed;
+  --muted:#b5a18d;
+  --accent:#f97316;
+  --accent2:#a3e635;
+  --good:#a3e635;
+  --bad:#fb7185;
+  --gold:#fbbf24;
+  --shadow:0 22px 75px #000b;
+}
+html{background:var(--bg)}
+body{
+ background:
+  radial-gradient(ellipse at 75% -8%,#f9731626,transparent 36%),
+  radial-gradient(ellipse at 5% 55%,#65a30d12,transparent 32%),
+  radial-gradient(ellipse at 90% 90%,#7c2d1220,transparent 35%),
+  var(--bg);
+}
+.sidebar{background:#0b0806ee;border-color:#382315}
+.brand-logo{background:linear-gradient(135deg,#f97316,#a3e635);color:#160b04;box-shadow:0 8px 30px #f9731640}
+.player-mini{background:linear-gradient(135deg,#1b100a,#0d0906);border-color:#382315}
+.avatar{background:linear-gradient(135deg,#38200f,#17100a);border-color:#70401f}
+.nav{color:#b5a18d}
+.nav:hover{background:#211309;color:#fff7ed}
+.nav.active{background:linear-gradient(90deg,#3a1d0b,#1b1009);box-shadow:inset 2px 0 #fb923c;color:#fff7ed}
+.topbar{background:#0b0806d9;border-color:#382315}
+.eyebrow{color:#c18b59}
+.hero{
+ border-color:#70401f;
+ background:
+  radial-gradient(circle at 79% 15%,#f9731633,transparent 28%),
+  radial-gradient(circle at 92% 88%,#a3e63516,transparent 26%),
+  linear-gradient(135deg,#211208,#0d0906);
+}
+.hero:after{background:#f973161c}
+.stat,.card,.compare-card{border-color:#382315;background:linear-gradient(145deg,#19100b,#0e0906)}
+.rank-hero{background:radial-gradient(circle at 88% 25%,#f9731624,transparent 31%),linear-gradient(145deg,#211309,#100a06)}
+.pill{background:#301a0c;border-color:#70401f;color:#fed7aa}
+.pill.subtle{background:#17100b;color:#b5a18d;border-color:#382315}
+.progress{background:#302015}
+.progress span{background:linear-gradient(90deg,#f97316,#facc15,#a3e635);box-shadow:0 0 15px #f9731670}
+.seg{border-color:#382315}
+.seg button{background:#100b08;color:#b5a18d}
+.seg button.active{background:#46220d;color:#fff7ed}
+.mini-grid div,.match-row,.leader-row{background:#100b08;border-color:#382315}
+.mode-dot{background:#fb923c}
+.mode-dot.lg{background:#a3e635}
+.text{color:#fdba74}
+.ghost,.close{border-color:#4b2c18;background:#1a1009;color:#fff7ed}
+.ghost:hover{background:#2a170b}
+.primary{background:linear-gradient(135deg,#ea580c,#f97316 58%,#a3e635);border-color:#fb923c;color:#1a0b03;box-shadow:0 8px 25px #f973162e}
+.primary:hover{filter:brightness(1.1)}
+input,select,textarea{border-color:#4b2c18;background:#0c0805;color:#fff7ed}
+input:focus,select:focus,textarea:focus{border-color:#fb923c;box-shadow:0 0 0 3px #f9731622}
+tbody tr:hover{background:#211309}
+th,td{border-bottom-color:#302015}
+.modal{border-color:#70401f;background:#100b08}
+.modal-head,.modal-foot{border-color:#382315}
+.result{background:radial-gradient(circle,#f9731626,transparent 58%)}
+.breakdown-row{background:#0c0805;border-color:#382315}
+.auto-profile-panel{border-color:#70401f;background:linear-gradient(135deg,#f9731618,#a3e6350a)}
+.auto-profile-title,.credential-password{color:#fdba74}
+.credential-card{border-color:#4b2c18;background:#100b08}
+.status-dot{background:#a3e635;box-shadow:0 0 12px #a3e635}
+@media(prefers-reduced-motion:no-preference){
+ .primary,.nav,.ghost,.progress span{transition:background .2s ease,filter .2s ease,transform .2s ease}
+ .primary:hover{transform:translateY(-1px)}
+}
