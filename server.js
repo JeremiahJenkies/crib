@@ -99,7 +99,7 @@ function findPlayer(v){
  return state.players.find(p=>p.id===v||String(p.username||"").toLowerCase()===q||String(p.displayName||"").toLowerCase()===q);
 }
 function opponentNamesFromBody(body){
- const raw=Array.isArray(body.opponents)?body.opponents:String(body.opponents||"").split(/[\\n,]+/);
+ const raw=Array.isArray(body.opponents)?body.opponents:String(body.opponents||"").split(/[\n,]+/);
  return [...new Set(raw.map(x=>String(x).trim()).filter(Boolean))];
 }
 function calculateRP(body,p){
