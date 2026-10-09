@@ -6,7 +6,8 @@ import { URL } from "node:url";
 
 const PORT=process.env.PORT||3000;
 const ADMIN_TOKEN=process.env.CRIB_ADMIN_TOKEN||"change-this-admin-token";
-const DATA_FILE=path.join(process.cwd(),"data.json");
+const DATA_FILE=path.resolve(process.env.CRIB_DATA_FILE||path.join(process.env.CRIB_DATA_DIR||process.cwd(),"data.json"));
+const BACKUP_FILE=DATA_FILE+".bak";
 const RANKS=["Coal","Iron","Copper","Quartz","Amethyst","Jade","Topaz","Opal","Pearl","Sapphire","Emerald","Ruby","Garnet","Onyx","Obsidian","Diamond","Mythic","Astral","Celestial","Radiant"];
 const DIVS=["IV","III","II","I"];
 
@@ -120,9 +121,54 @@ function calculateRP(body,p){
  const final=Math.max(-100,Math.min(100,Math.round(raw*modifier)));
  return {final,base,expectedSwing,combatPerformance:combat,objectivePerformance:objective,scoreDifferential:scorePerf,streakBonus,kitModifier:modifier,kit:k?.name||"None",kitPowerAtMatch:Number(k?.powerScore??k?.power??0),kitMultiplierAtMatch:modifier,win,expectedWinChance:Math.round(expected*100)};
 }
-async function saveState(){const tmp=DATA_FILE+".tmp";await fs.writeFile(tmp,JSON.stringify(state,null,2));await fs.rename(tmp,DATA_FILE)}
+async function saveState(){
+ const dir=path.dirname(DATA_FILE);
+ await fs.mkdir(dir,{recursive:true});
+ const tmp=DATA_FILE+"."+process.pid+".tmp";
+ try{
+  await fs.access(DATA_FILE);
+  await fs.copyFile(DATA_FILE,BACKUP_FILE);
+ }catch(error){if(error.code!=="ENOENT")throw error}
+ await fs.writeFile(tmp,JSON.stringify(state,null,2),"utf8");
+ await fs.rename(tmp,DATA_FILE);
+}
+function applySavedState(saved){
+ Object.assign(state,saved);
+ state.config={...state.config,...(saved.config||{})};
+ state.players=(state.players||[]).map(normalizePlayer);
+ state.kits=(state.kits?.length?state.kits:DEFAULT_KITS).map(normalizeKit);
+}
 async function loadState(){
- try{const saved=JSON.parse(await fs.readFile(DATA_FILE,"utf8"));Object.assign(state,saved);state.config={...state.config,...(saved.config||{})};state.players=(state.players||[]).map(normalizePlayer);state.kits=(state.kits?.length?state.kits:DEFAULT_KITS).map(normalizeKit)}catch{state.kits=DEFAULT_KITS.map(normalizeKit);await saveState()}
+ await fs.mkdir(path.dirname(DATA_FILE),{recursive:true});
+ try{
+  const saved=JSON.parse(await fs.readFile(DATA_FILE,"utf8"));
+  applySavedState(saved);
+  return;
+ }catch(error){
+  if(error.code!=="ENOENT"){
+   try{
+    const backup=JSON.parse(await fs.readFile(BACKUP_FILE,"utf8"));
+    applySavedState(backup);
+    await saveState();
+    console.warn("CRIB recovered data.json from its last-good backup.");
+    return;
+   }catch(backupError){
+    if(backupError.code==="ENOENT")throw new Error("CRIB data file is invalid and no backup exists. Refusing to reset player data.");
+    throw new Error("CRIB could not read its data file or backup. Refusing to reset player data.");
+   }
+  }
+  try{
+   const backup=JSON.parse(await fs.readFile(BACKUP_FILE,"utf8"));
+   applySavedState(backup);
+   await saveState();
+   console.warn("CRIB restored its missing data file from backup.");
+   return;
+  }catch(backupError){
+   if(backupError.code!=="ENOENT")throw new Error("CRIB backup exists but cannot be read. Refusing to reset player data.");
+  }
+  state.kits=DEFAULT_KITS.map(normalizeKit);
+  await saveState();
+ }
 }
 function json(res,status,data){res.writeHead(status,{"content-type":"application/json; charset=utf-8","access-control-allow-origin":"*","access-control-allow-methods":"GET,POST,PUT,OPTIONS","access-control-allow-headers":"content-type,x-admin-token"});res.end(JSON.stringify(data))}
 async function body(req){return await new Promise((resolve,reject)=>{let s="";req.on("data",c=>s+=c);req.on("end",()=>{try{resolve(s?JSON.parse(s):{})}catch(e){reject(e)}});req.on("error",reject)})}
