@@ -58,15 +58,8 @@ function ensureOpponentProfiles(names,excludeId,startingRP=1000){
  }
  return created;
 }
-function applyOpponentResult(cp,match,won,opponentChange){
- cp.rp=Math.max(0,Number(cp.rp||1000)+Number(opponentChange||0));
- cp.peakRP=Math.max(cp.peakRP,cp.rp);
- cp.wins+=won?1:0;
- cp.losses+=won?0:1;
- cp.winstreak=won?cp.winstreak+1:0;
- cp.bestStreak=Math.max(cp.bestStreak,cp.winstreak);
- cp.matches.push(match.id);
- cp.history.push({date:match.createdAt,rp:cp.rp,change:opponentChange,event:"SCRIM OPPONENT"});
+function applyOpponentResult(cp,match,won,opponentChange,opponentRating=1000,ratingField="mmr",gamesField="mmrGames"){
+ updateMatchRecord(cp,match,won,opponentChange,ratingField,gamesField,opponentRating);
 }
 function kit(name){return state.kits.find(k=>String(k.name).toLowerCase()===String(name||"None").toLowerCase())||state.kits[0]}
 function kitMultiplierFor(k){
@@ -77,7 +70,28 @@ function kitMultiplierFor(k){
 }
 function normalizeKit(k){const x={...k,power:Number(k.powerScore??k.power??0)};x.rpMultiplier=kitMultiplierFor(x);return x}
 function normalizePlayer(x){
- return {id:x.id,username:x.username,displayName:x.displayName||x.username,rp:Number(x.rp??1000),peakRP:Number(x.peakRP??x.rp??1000),wins:Number(x.wins??0),losses:Number(x.losses??0),kills:Number(x.kills??0),deaths:Number(x.deaths??0),beds:Number(x.beds??0),winstreak:Number(x.winstreak??0),bestStreak:Number(x.bestStreak??0),bedStreak:Number(x.bedStreak??0),bestBedStreak:Number(x.bestBedStreak??0),cribRating:Number(x.cribRating??1000),performanceRating:Number(x.performanceRating??1000),recentForm:Number(x.recentForm??0),mmr:Number(x.mmr??1000),lateElo:Number(x.lateElo??1000),matches:x.matches??[],lateGames:x.lateGames??[],history:x.history??[],passwordHash:x.passwordHash};
+ return {id:x.id,username:x.username,displayName:x.displayName||x.username,rp:Number(x.rp??1000),peakRP:Number(x.peakRP??x.rp??1000),wins:Number(x.wins??0),losses:Number(x.losses??0),kills:Number(x.kills??0),deaths:Number(x.deaths??0),beds:Number(x.beds??0),winstreak:Number(x.winstreak??0),bestStreak:Number(x.bestStreak??0),bedStreak:Number(x.bedStreak??0),bestBedStreak:Number(x.bestBedStreak??0),cribRating:Number(x.cribRating??1000),performanceRating:Number(x.performanceRating??1000),recentForm:Number(x.recentForm??0),mmr:Number(x.mmr??1000),mmrGames:Number(x.mmrGames??0),scrimMmr:Number(x.scrimMmr??x.mmr??1000),scrimMmrGames:Number(x.scrimMmrGames??0),lateElo:Number(x.lateElo??1000),lateEloGames:Number(x.lateEloGames??0),matches:x.matches??[],lateGames:x.lateGames??[],history:x.history??[],passwordHash:x.passwordHash};
+}
+function expectedScore(rating,opponentRating){return 1/(1+Math.pow(10,(opponentRating-rating)/400))}
+function applyRating(player,opponentRating,won,field="mmr",gamesField="mmrGames"){
+ const current=Math.max(0,Number(player[field]??1000)),games=Math.max(0,Number(player[gamesField]??0));
+ const k=games<10?40:games<30?32:24;
+ const expected=expectedScore(current,Math.max(0,Number(opponentRating??1000)));
+ const change=Math.round(k*((won?1:0)-expected));
+ player[field]=Math.max(0,Math.round(current+change));
+ player[gamesField]=games+1;
+ return {before:current,change,after:player[field],expected:Math.round(expected*100)};
+}
+function updateMatchRecord(player,match,won,rpChange,ratingField="mmr",gamesField="mmrGames",opponentRating=1000){
+ const rating=applyRating(player,opponentRating,won,ratingField,gamesField);
+ player.rp=Math.max(0,Number(player.rp??1000)+rpChange);
+ player.peakRP=Math.max(Number(player.peakRP??1000),player.rp);
+ player.wins+=won?1:0;player.losses+=won?0:1;
+ player.winstreak=won?Number(player.winstreak||0)+1:0;
+ player.bestStreak=Math.max(Number(player.bestStreak||0),player.winstreak);
+ player.matches.push(match.id);
+ player.history.push({date:match.createdAt,rp:player.rp,change:rpChange,event:match.type==="LG"?"LATE GAME":"SCRIM",mmr:player[ratingField],mmrChange:rating.change,result:won?"Win":"Loss"});
+ return rating;
 }
 function publicPlayer(p){const q={...p};delete q.passwordHash;return q}
 function findPlayer(v){
@@ -93,7 +107,7 @@ function calculateRP(body,p){
  const explicitResult=String(body.result||"").toLowerCase();
  const win=explicitResult?explicitResult==="win":forScore>against;
  const diff=Math.abs(forScore-against);
- const opponent=Number(body.opponentRP||p.rp||1000),expected=1/(1+Math.pow(10,(p.rp-opponent)/400));
+ const opponent=Number(body.opponentRP||p.mmr||1000),expected=expectedScore(Number(p.mmr||1000),opponent);
  const expectedSwing=Math.round(((win?1:0)-expected)*24);
  const combat=Math.max(-5,Math.min(8,Math.round((Number(body.kills||0)-Number(body.deaths||0))*.75)));
  const objective=mode==="NO_BED_SCRIM"?0:Math.min(5,Number(body.bedsDestroyed||0));
@@ -150,11 +164,15 @@ const server=http.createServer(async(req,res)=>{
    const op=findPlayer(b.opponentId||"");
    const resolvedOpponents=opponentNames.map(name=>findPlayer(name)?.displayName||name);
    const match={id:matchId,type:"SCRIM",mode,format:String(b.format||"4v4"),teamSize:Number(b.teamSize||4),playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents,kit:calc.kit,kitRule:String(b.kitRule||"Allowed"),map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),result:calc.win?"Win":"Loss",kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),verified:Boolean(b.verified),notes:String(b.notes||""),rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt};
-   for(const opponentName of opponentNames){
-    const cp=findPlayer(opponentName);
-    if(cp&&cp.id!==p.id)applyOpponentResult(cp,match,!calc.win,-calc.final);
+   const opponentProfiles=opponentNames.map(name=>findPlayer(name)).filter(cp=>cp&&cp.id!==p.id);
+   const averageOpponentMmr=opponentProfiles.length?opponentProfiles.reduce((s,x)=>s+Number(x.mmr||1000),0)/opponentProfiles.length:Number(b.opponentRP||1000);
+   const playerRating=applyRating(p,averageOpponentMmr,calc.win,"mmr","mmrGames");
+   const playerScrimRating=applyRating(p,averageOpponentMmr,calc.win,"scrimMmr","scrimMmrGames");
+   for(const cp of opponentProfiles){
+    applyOpponentResult(cp,match,!calc.win,-calc.final,Number(p.mmr||1000),"mmr","mmrGames");
+    applyRating(cp,Number(p.mmr||1000),!calc.win,"scrimMmr","scrimMmrGames");
    }
-   const oldStreak=p.winstreak;p.rp=Math.max(0,p.rp+calc.final);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.bedStreak=match.bedsDestroyed>0?p.bedStreak+match.bedsDestroyed:0;p.bestBedStreak=Math.max(p.bestBedStreak,p.bedStreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.performanceRating=Math.max(0,Math.round((p.performanceRating*.85)+((1000+calc.final*4)*.15)));p.recentForm=Math.round(p.recentForm*.7+(calc.final>0?100:0)*.3);p.mmr=Math.max(0,Math.round(p.mmr+calc.expectedSwing));p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode,fromStreak:oldStreak});
+   const oldStreak=p.winstreak;p.rp=Math.max(0,p.rp+calc.final);p.peakRP=Math.max(p.peakRP,p.rp);p.wins+=calc.win?1:0;p.losses+=calc.win?0:1;p.kills+=match.kills;p.deaths+=match.deaths;p.beds+=match.bedsDestroyed;p.winstreak=calc.win?p.winstreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winstreak);p.bedStreak=match.bedsDestroyed>0?p.bedStreak+match.bedsDestroyed:0;p.bestBedStreak=Math.max(p.bestBedStreak,p.bedStreak);p.cribRating=Math.max(0,Math.round(p.cribRating+calc.final*.65));p.performanceRating=Math.max(0,Math.round((p.performanceRating*.85)+((1000+calc.final*4)*.15)));p.recentForm=Math.round(p.recentForm*.7+(calc.final>0?100:0)*.3);p.matches.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:calc.final,event:mode,fromStreak:oldStreak,mmr:p.mmr,mmrChange:playerRating.change,scrimMmr:p.scrimMmr,scrimMmrChange:playerScrimRating.change});
    state.matches.push(match);
 
    await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:calc,rank:rankData(p.rp),autoCreatedPlayers});
@@ -169,22 +187,15 @@ const server=http.createServer(async(req,res)=>{
     ?ensureOpponentProfiles([opponentName],p.id,1000)
     :[];
    const opponentProfile=findPlayer(opponentName);
-   for(const created of autoCreatedPlayers){
-    const cp=findPlayer(created.id);
-    if(!cp)continue;
-    const opponentChange=-rp;
-    cp.rp=Math.max(0,1000+opponentChange);
-    cp.peakRP=Math.max(cp.peakRP,cp.rp);
-    cp.wins+=win?0:1;
-    cp.losses+=win?1:0;
-    cp.winstreak=win?0:1;
-    cp.bestStreak=Math.max(cp.bestStreak,cp.winstreak);
-    cp.lateElo=Math.max(0,cp.lateElo-Math.round(diff*12));
-    cp.history.push({date:new Date().toISOString(),rp:cp.rp,change:opponentChange,event:"AUTO OPPONENT LATE GAME"});
+   const match={id:id("lg"),type:"LG",playerId:p.id,opponent:opponentName||"Unknown",opponentId:opponentProfile?.id||null,map:"Reservoir",matchType:"Late Game",scoreFor:a,scoreAgainst:z,result:win?"Win":"Loss",rp,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt:new Date().toISOString()};
+   const opponentMmr=Number(opponentProfile?.lateElo||1000);
+   const playerLateRating=applyRating(p,opponentMmr,win,"lateElo","lateEloGames");
+   if(opponentProfile&&opponentProfile.id!==p.id){
+    applyOpponentResult(opponentProfile,match,!win,-rp,Number(p.lateElo||1000),"lateElo","lateEloGames");
+    opponentProfile.lateGames.push(match.id);
    }
-   const match={id:id("lg"),type:"LG",playerId:p.id,opponent:opponentName||"Unknown",map:"Reservoir",matchType:"Winstreak 1v1 / Late Game",scoreFor:a,scoreAgainst:z,result:win?"Win":"Loss",rp,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt:new Date().toISOString()};
-   if(opponentProfile&&opponentProfile.id!==p.id)applyOpponentResult(opponentProfile,match,!win,-rp);
-   p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.lateElo=Math.max(0,p.lateElo+Math.round(diff*12));p.lateGames.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:rp,event:"LATE GAME"});state.matches.push(match);await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:{base:win?24:-22,scoreDifferential:diff*2,final:rp},autoCreatedPlayers});
+   p.rp=Math.max(0,p.rp+rp);p.peakRP=Math.max(p.peakRP,p.rp);p.lateGames.push(match.id);p.history.push({date:match.createdAt,rp:p.rp,change:rp,event:"LATE GAME",lateElo:p.lateElo,lateEloChange:playerLateRating.change});state.matches.push(match);await saveState();return json(res,201,{match,player:publicPlayer(p),breakdown:{base:win?24:-22,scoreDifferential:diff*2,final:rp,lateEloChange:playerLateRating.change,lateElo:p.lateElo},autoCreatedPlayers});
+
   }
   if(u.pathname==="/api/matches"&&req.method==="GET"){const pid=u.searchParams.get("playerId");return json(res,200,{matches:state.matches.filter(m=>!pid||m.playerId===pid).slice().reverse()})}
   if(u.pathname==="/api/admin/config"&&req.method==="PUT"){
