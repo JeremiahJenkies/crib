@@ -1,5 +1,5 @@
 const API="/api";
-let players=[],kits=[],matches=[],config={},active=null,adminToken="";
+let players=[],kits=[],matches=[],config={},active=null,adminToken="",updateEntries=[];
 const RANKS=["Coal","Iron","Copper","Quartz","Amethyst","Jade","Topaz","Opal","Pearl","Sapphire","Emerald","Ruby","Garnet","Onyx","Obsidian","Diamond","Mythic","Astral","Celestial","Radiant"];
 const DIVS=["IV","III","II","I"];
 const $=id=>document.getElementById(id);
@@ -32,7 +32,7 @@ function openPage(page){
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   $(page+"-page")?.classList.add("active");
   document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="leaderboards"?"Leaderboards":page==="late"?"Late Games":page==="winstreak"?"Winstreak 1v1":page==="scrims"?"Scrims":page==="kits"?"Kit Library":page==="compare"?"Kit Compare":page==="players"?"Players":page==="statistics"?"Statistics":page==="admin"?"Admin":page);
+  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="leaderboards"?"Leaderboards":page==="late"?"Late Games":page==="winstreak"?"Winstreak 1v1":page==="scrims"?"Scrims":page==="kits"?"Kit Library":page==="compare"?"Kit Compare":page==="players"?"Players":page==="statistics"?"Statistics":page==="updates"?"Update Tree":page==="admin"?"Admin":page);
   window.scrollTo({top:0,behavior:"smooth"});
   if(page==="statistics")drawAnalytics();
 }
@@ -45,10 +45,37 @@ async function refresh(){
   players=p.players||[];kits=k.kits||[];config=c.config||{};matches=m.matches||[];
   active=players.find(x=>x.id===localStorage.getItem("cribActivePlayer"))||players[0]||null;
   if(active)saveActive();
-  renderAll();populateKits();drawChart();drawAnalytics();
+  renderAll();populateKits();drawChart();drawAnalytics();loadUpdateTree().catch(()=>{text("updateCount","History unavailable");text("updateTree","Could not load updates.json.")});
   text("serverStatus","ONLINE");$("statusDot")?.style.setProperty("background","var(--good)");
 }
-function renderAll(){renderPlayerSwitch();renderPlayer();renderRecent();renderMatches();renderPlayers();renderKits();renderCompare();renderLeaderboard();renderLate();renderWinstreak();renderStats();renderAdmin();updateModeFields()}
+function renderAll(){renderPlayerSwitch();renderPlayer();renderRecent();renderMatches();renderPlayers();renderKits();renderCompare();renderLeaderboard();renderLate();renderWinstreak();renderStats();renderAdmin();renderUpdateTree();updateModeFields()}
+async function loadUpdateTree(){
+ const response=await fetch("updates.json",{cache:"no-store"});
+ if(!response.ok)throw new Error("Update history request failed");
+ const data=await response.json();
+ updateEntries=Array.isArray(data.entries)?data.entries:[];
+ renderUpdateTree();
+}
+function renderUpdateTree(){
+ const box=$("updateTree");if(!box)return;
+ const count=$("updateCount");if(count)count.textContent=updateEntries.length+" recorded updates";
+ const order=["Platform & Data","Ranked Ratings","Match Tracking","Player Profiles","Interface & Design","Quality & Fixes","Other"];
+ const groups=new Map();
+ [...updateEntries].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(entry=>{
+  const category=order.includes(entry.category)?entry.category:"Other";
+  if(!groups.has(category))groups.set(category,[]);
+  groups.get(category).push(entry);
+ });
+ const cats=[...order.filter(c=>groups.has(c)),...([...groups.keys()].filter(c=>!order.includes(c)))];
+ box.innerHTML=cats.map(category=>{
+  const entries=groups.get(category)||[];
+  return `<section class="update-branch"><div class="update-branch-head"><span class="update-branch-dot"></span><div><b>${esc(category)}</b><small>${entries.length} update${entries.length===1?"":"s"}</small></div></div><div class="update-leaves">${entries.map(entry=>{
+   const d=new Date(entry.date),stamp=Number.isNaN(d.getTime())?"Date unavailable":new Intl.DateTimeFormat("en-IE",{dateStyle:"medium",timeStyle:"short"}).format(d);
+   const short=String(entry.sha||"").slice(0,7);
+   return `<article class="update-leaf"><span class="update-leaf-dot"></span><div class="update-leaf-body"><div class="update-meta"><time datetime="${esc(entry.date)}">${esc(stamp)}</time>${short?`<a href="https://github.com/JeremiahJenkies/crib/commit/${encodeURIComponent(entry.sha)}" target="_blank" rel="noopener noreferrer">${esc(short)}</a>`:""}</div><b>${esc(entry.title||entry.message||"Update")}</b><p>${esc(entry.summary||entry.message||"Repository update")}</p></div></article>`;
+  }).join("")}</div></section>`;
+ }).join("")||'<div class="muted-line">No updates have been recorded yet.</div>';
+}
 function renderPlayerSwitch(){
   const s=$("activePlayerSelect");if(!s)return;
   s.innerHTML=players.map(p=>`<option value="${esc(p.id)}">${esc(p.displayName)} · ${num(p.rp)} RP</option>`).join("")||'<option value="">No players</option>';
