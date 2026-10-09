@@ -1,0 +1,424 @@
+{
+  "entries": [
+    {
+      "sha": "c3e9bfcbae6543723ac83ee6df0348fa84ab597a",
+      "date": "2026-10-09T22:32:28Z",
+      "category": "Interface & Design",
+      "title": "Style Halloween update tree and timeline",
+      "summary": "Style Halloween update tree and timeline"
+    },
+    {
+      "sha": "26605d34cedd6744e2a86815f43a27a02d519442",
+      "date": "2026-10-09T22:32:21Z",
+      "category": "Interface & Design",
+      "title": "Render dated feature tree from update history",
+      "summary": "Render dated feature tree from update history"
+    },
+    {
+      "sha": "1b883929641b49787baa692c2603d0f203e80f74",
+      "date": "2026-10-09T22:32:12Z",
+      "category": "Interface & Design",
+      "title": "Add feature update tree page",
+      "summary": "Add feature update tree page"
+    },
+    {
+      "sha": "ad6d3cc6448cd481c968f8fe205175f30b859c11",
+      "date": "2026-10-09T22:32:04Z",
+      "category": "Platform & Data",
+      "title": "Add configurable durable data path and recovery backup",
+      "summary": "Add configurable durable data path and recovery backup"
+    },
+    {
+      "sha": "632bf8a666a275dcf7d8de4eeadc25cf16cdc64f",
+      "date": "2026-10-09T22:18:03Z",
+      "category": "Interface & Design",
+      "title": "Apply Halloween theme to CRIB UI",
+      "summary": "Apply Halloween theme to CRIB UI"
+    },
+    {
+      "sha": "2ff4b1ace0528f9622cbe893a700098622b744c6",
+      "date": "2026-10-09T22:17:11Z",
+      "category": "Platform & Data",
+      "title": "Add automated JavaScript syntax checks",
+      "summary": "Add automated JavaScript syntax checks"
+    },
+    {
+      "sha": "1586ef2ca01b8157547fee0cae1bdc5caefba75a",
+      "date": "2026-10-09T22:17:03Z",
+      "category": "Match Tracking",
+      "title": "Preserve selected Winstreak match result",
+      "summary": "Preserve selected Winstreak match result"
+    },
+    {
+      "sha": "38bdacd58cbdf7216d65bb76a20f5ead876bcc3d",
+      "date": "2026-10-09T22:17:01Z",
+      "category": "Ranked Ratings",
+      "title": "Fix Scrim and Late Game rating accounting",
+      "summary": "Fix Scrim and Late Game rating accounting"
+    },
+    {
+      "sha": "a4c8defbe08ea57833a366220738405332794619",
+      "date": "2026-10-09T22:04:02Z",
+      "category": "Ranked Ratings",
+      "title": "Show MMR placement progress and parse opponent rosters",
+      "summary": "Show MMR placement progress and parse opponent rosters"
+    },
+    {
+      "sha": "75856e79406f645f33773cf4e1b22fe89d2b1a5a",
+      "date": "2026-10-09T22:03:59Z",
+      "category": "Match Tracking",
+      "title": "Parse newline-separated scrim rosters correctly",
+      "summary": "Parse newline-separated scrim rosters correctly"
+    },
+    {
+      "sha": "eb7407f7ee425d5b1c7596a6f8201c05feb559fe",
+      "date": "2026-10-09T22:03:51Z",
+      "category": "Ranked Ratings",
+      "title": "Fix Late Game records and rating history",
+      "summary": "Fix Late Game records and rating history"
+    },
+    {
+      "sha": "c0d8609607df88b2385e6736b5b0c40ea971d127",
+      "date": "2026-10-09T22:03:44Z",
+      "category": "Ranked Ratings",
+      "title": "Support MMR and stat leaderboard filters",
+      "summary": "Support MMR and stat leaderboard filters"
+    },
+    {
+      "sha": "a208650508ea9bfa51a2a6d1dc20a7c973754436",
+      "date": "2026-10-09T22:03:41Z",
+      "category": "Ranked Ratings",
+      "title": "Add MMR and mode-specific leaderboards",
+      "summary": "Add MMR and mode-specific leaderboards"
+    },
+    {
+      "sha": "99c2adc9fbb30922e0625f6bf5dc1ba29b753a3e",
+      "date": "2026-10-09T22:03:31Z",
+      "category": "Interface & Design",
+      "title": "Rebuild MMR, RP and Late Game rating calculations",
+      "summary": "Rebuild MMR, RP and Late Game rating calculations"
+    },
+    {
+      "sha": "af89885225bab428a4c59125c8d3e03b4ed98515",
+      "date": "2026-10-08T14:02:16Z",
+      "category": "Match Tracking",
+      "title": "Update every logged opponent profile from scrim result",
+      "summary": "Update every logged opponent profile from scrim result"
+    },
+    {
+      "sha": "a53ec26078cfd9589127c01e75d15e42bcaa965d",
+      "date": "2026-10-08T14:02:09Z",
+      "category": "Match Tracking",
+      "title": "Wire new BedWars scrim form and result system",
+      "summary": "Wire new BedWars scrim form and result system"
+    },
+    {
+      "sha": "6d121010331c76ee6e104412f3174e1c79248f89",
+      "date": "2026-10-08T14:02:01Z",
+      "category": "Interface & Design",
+      "title": "Rebuild BedWars scrim form",
+      "summary": "Rebuild BedWars scrim form"
+    },
+    {
+      "sha": "ff76dde7eeaf3f26d5938485d2ded0104ea501ba",
+      "date": "2026-10-08T14:01:51Z",
+      "category": "Interface & Design",
+      "title": "Rebuild scrim tracking and opponent profiles",
+      "summary": "Rebuild scrim tracking and opponent profiles"
+    },
+    {
+      "sha": "41aef87a6887e171b30738f3d3bc82097e139bce",
+      "date": "2026-10-08T13:49:19Z",
+      "category": "Match Tracking",
+      "title": "Fix automatic opponent profiles",
+      "summary": "Fix automatic opponent profiles"
+    },
+    {
+      "sha": "388dd039c81bfdd4663aa2b38597fd5fcb0d79eb",
+      "date": "2026-10-08T13:40:45Z",
+      "category": "Match Tracking",
+      "title": "Auto-create opponent profiles with 0 percent win rate",
+      "summary": "Auto-create opponent profiles with 0 percent win rate"
+    },
+    {
+      "sha": "9fcdad4c30ff8b1896ebbe9647c2064e0e26b6ad",
+      "date": "2026-10-08T13:34:57Z",
+      "category": "Ranked Ratings",
+      "title": "Fix leaderboards to count all match types",
+      "summary": "Fix leaderboards to count all match types"
+    },
+    {
+      "sha": "3dd417f02c71a8ae0f079d65f7774c1cf3cbc16c",
+      "date": "2026-10-08T13:30:00Z",
+      "category": "Interface & Design",
+      "title": "Style automatic player credential panel",
+      "summary": "Style automatic player credential panel"
+    },
+    {
+      "sha": "c6d39e2b9494644598a0c5ac8f920b2ca368afc8",
+      "date": "2026-10-08T13:29:55Z",
+      "category": "Player Profiles",
+      "title": "Display automatic player usernames and passwords",
+      "summary": "Display automatic player usernames and passwords"
+    },
+    {
+      "sha": "fcd67e81e9316401a04fc7b3baa9363e38693b4f",
+      "date": "2026-10-08T13:29:49Z",
+      "category": "Match Tracking",
+      "title": "Show generated opponent credentials after losses",
+      "summary": "Show generated opponent credentials after losses"
+    },
+    {
+      "sha": "3f2acde29e9064760cacbe63f588a67e581b77c0",
+      "date": "2026-10-08T13:29:41Z",
+      "category": "Ranked Ratings",
+      "title": "Add automatic opponent profiles and RP credit for losses",
+      "summary": "Add automatic opponent profiles and RP credit for losses"
+    },
+    {
+      "sha": "eecf3c9df3bd090f3bbcd24581bdd7ddbf9e3a60",
+      "date": "2026-10-08T11:23:59Z",
+      "category": "Match Tracking",
+      "title": "Automatically create opponent profiles and credentials on losses",
+      "summary": "Automatically create opponent profiles and credentials on losses"
+    },
+    {
+      "sha": "504edaa31fe0408921237f8e4bef59a9d6fda1f0",
+      "date": "2026-10-08T11:23:49Z",
+      "category": "Match Tracking",
+      "title": "Show automatic opponent profile creation after losses",
+      "summary": "Show automatic opponent profile creation after losses"
+    },
+    {
+      "sha": "420b2fbc08086edeca917794624ec6d585becaad",
+      "date": "2026-10-08T11:23:41Z",
+      "category": "Interface & Design",
+      "title": "Add automatic opponent profile and loss RP UI",
+      "summary": "Add automatic opponent profile and loss RP UI"
+    },
+    {
+      "sha": "976152caf3e665967ed0e5f0a7c0554020c42830",
+      "date": "2026-10-06T21:14:52Z",
+      "category": "Platform & Data",
+      "title": "Fix invalid literal newline escapes in server.js",
+      "summary": "Fix invalid literal newline escapes in server.js"
+    },
+    {
+      "sha": "9ea43dcee66c2c08c40e42bb8598896e48ddf670",
+      "date": "2026-10-06T20:45:38Z",
+      "category": "Ranked Ratings",
+      "title": "Fix expected-win RP calculation",
+      "summary": "Fix expected-win RP calculation"
+    },
+    {
+      "sha": "62ffaf5e11323c4310b3153f8a9db0b682804222",
+      "date": "2026-10-06T20:45:34Z",
+      "category": "Ranked Ratings",
+      "title": "Refresh CRIB ranked configuration and kit metadata",
+      "summary": "Refresh CRIB ranked configuration and kit metadata"
+    },
+    {
+      "sha": "10fbb7397441e7d811dd44a3a2214bc38e3b9962",
+      "date": "2026-10-06T20:45:27Z",
+      "category": "Ranked Ratings",
+      "title": "Harden CRIB backend and fix ranked scoring system",
+      "summary": "Harden CRIB backend and fix ranked scoring system"
+    },
+    {
+      "sha": "407b70bec60e1701dcb7ab2bd373538824646557",
+      "date": "2026-10-06T20:45:08Z",
+      "category": "Interface & Design",
+      "title": "Rewrite CRIB frontend logic and remove object rendering bugs",
+      "summary": "Rewrite CRIB frontend logic and remove object rendering bugs"
+    },
+    {
+      "sha": "20289f6cec15cf708c602cadaeb83cb78bf4ef10",
+      "date": "2026-10-06T20:44:28Z",
+      "category": "Interface & Design",
+      "title": "Redesign CRIB with polished competitive UI",
+      "summary": "Redesign CRIB with polished competitive UI"
+    },
+    {
+      "sha": "806bf1f05f2c9a6ab40cdcb2bae5b7506ff345b1",
+      "date": "2026-10-06T20:44:05Z",
+      "category": "Interface & Design",
+      "title": "Overhaul CRIB interface and ranked dashboard",
+      "summary": "Overhaul CRIB interface and ranked dashboard"
+    },
+    {
+      "sha": "e89b16dd9b7ff7140de431e6221a851b9d8026df",
+      "date": "2026-10-06T20:43:37Z",
+      "category": "Ranked Ratings",
+      "title": "Add radiant rank emblem",
+      "summary": "Add radiant rank emblem"
+    },
+    {
+      "sha": "f17c172577e6253cd20c810b417a2fb8a77a71bc",
+      "date": "2026-10-06T20:43:35Z",
+      "category": "Ranked Ratings",
+      "title": "Add celestial rank emblem",
+      "summary": "Add celestial rank emblem"
+    },
+    {
+      "sha": "cb2ddbf8ec58fcb0854a98bb08b89a4533c64779",
+      "date": "2026-10-06T20:43:33Z",
+      "category": "Ranked Ratings",
+      "title": "Add astral rank emblem",
+      "summary": "Add astral rank emblem"
+    },
+    {
+      "sha": "74a14dd75b5aa62346bcb497ecc087413c3c02a7",
+      "date": "2026-10-06T20:43:31Z",
+      "category": "Ranked Ratings",
+      "title": "Add mythic rank emblem",
+      "summary": "Add mythic rank emblem"
+    },
+    {
+      "sha": "435d2b547a363fcdfc96bd32a9fdeaef5cc0d2f7",
+      "date": "2026-10-06T20:43:29Z",
+      "category": "Ranked Ratings",
+      "title": "Add diamond rank emblem",
+      "summary": "Add diamond rank emblem"
+    },
+    {
+      "sha": "0a6e35ffcba17ef252b3aeadf0267beffa7f1de3",
+      "date": "2026-10-06T20:43:15Z",
+      "category": "Ranked Ratings",
+      "title": "Add obsidian rank emblem",
+      "summary": "Add obsidian rank emblem"
+    },
+    {
+      "sha": "e84f44ad1a889a0ce9e24b41dc7c8086665ae67f",
+      "date": "2026-10-06T20:43:13Z",
+      "category": "Ranked Ratings",
+      "title": "Add onyx rank emblem",
+      "summary": "Add onyx rank emblem"
+    },
+    {
+      "sha": "df81c78ef136165be62269dc74e854ec2bd72094",
+      "date": "2026-10-06T20:43:11Z",
+      "category": "Ranked Ratings",
+      "title": "Add garnet rank emblem",
+      "summary": "Add garnet rank emblem"
+    },
+    {
+      "sha": "03617698317c49223ab313f62a4c997cda914d68",
+      "date": "2026-10-06T20:43:09Z",
+      "category": "Ranked Ratings",
+      "title": "Add ruby rank emblem",
+      "summary": "Add ruby rank emblem"
+    },
+    {
+      "sha": "f2ba9b72fde22fc5d6cf6b4c6d17c0896bdf7db2",
+      "date": "2026-10-06T20:43:06Z",
+      "category": "Ranked Ratings",
+      "title": "Add emerald rank emblem",
+      "summary": "Add emerald rank emblem"
+    },
+    {
+      "sha": "5db84ed19c0015de706ed124e1cbabcd3d779d4b",
+      "date": "2026-10-06T20:43:04Z",
+      "category": "Ranked Ratings",
+      "title": "Add sapphire rank emblem",
+      "summary": "Add sapphire rank emblem"
+    },
+    {
+      "sha": "0021082f1dc0fbf88875e90c45cd85d229e35a7f",
+      "date": "2026-10-06T20:43:02Z",
+      "category": "Ranked Ratings",
+      "title": "Add pearl rank emblem",
+      "summary": "Add pearl rank emblem"
+    },
+    {
+      "sha": "94960be50cebed770409b52fb807a29b23f5f72b",
+      "date": "2026-10-06T20:43:00Z",
+      "category": "Ranked Ratings",
+      "title": "Add opal rank emblem",
+      "summary": "Add opal rank emblem"
+    },
+    {
+      "sha": "0203706e3f216d6c1a8e9ca9131f4331c2c61af0",
+      "date": "2026-10-06T20:42:58Z",
+      "category": "Ranked Ratings",
+      "title": "Add topaz rank emblem",
+      "summary": "Add topaz rank emblem"
+    },
+    {
+      "sha": "37f381554a7050c1ad6e5e58af4f891ff7f2085c",
+      "date": "2026-10-06T20:42:55Z",
+      "category": "Ranked Ratings",
+      "title": "Add jade rank emblem",
+      "summary": "Add jade rank emblem"
+    },
+    {
+      "sha": "13dd234ec48e7d70f94f5f5ac5ac1bdf3811e507",
+      "date": "2026-10-06T20:42:52Z",
+      "category": "Ranked Ratings",
+      "title": "Add amethyst rank emblem",
+      "summary": "Add amethyst rank emblem"
+    },
+    {
+      "sha": "27bdfcda0634c348d41fc7cf4234bd923c3c97c7",
+      "date": "2026-10-06T20:42:50Z",
+      "category": "Ranked Ratings",
+      "title": "Add quartz rank emblem",
+      "summary": "Add quartz rank emblem"
+    },
+    {
+      "sha": "587ef3368099c05bffaefadbfe7827469e4d951c",
+      "date": "2026-10-06T20:42:48Z",
+      "category": "Ranked Ratings",
+      "title": "Add copper rank emblem",
+      "summary": "Add copper rank emblem"
+    },
+    {
+      "sha": "76a100f1ed7407c2e83c597f37f66600b7d32155",
+      "date": "2026-10-06T20:42:46Z",
+      "category": "Ranked Ratings",
+      "title": "Add iron rank emblem",
+      "summary": "Add iron rank emblem"
+    },
+    {
+      "sha": "1ae634ad01eb120aee89c0fca7df90820dfb11b2",
+      "date": "2026-10-06T20:42:44Z",
+      "category": "Ranked Ratings",
+      "title": "Add coal rank emblem",
+      "summary": "Add coal rank emblem"
+    },
+    {
+      "sha": "4f1b4ec4b4f1461c06e80dcb5d14483dd56ecc8c",
+      "date": "2026-10-06T19:38:29Z",
+      "category": "Ranked Ratings",
+      "title": "Add configurable mode-aware kit RP engine",
+      "summary": "Add configurable mode-aware kit RP engine"
+    },
+    {
+      "sha": "c445feb59cc8e13fc3d0092dc576f770967510a2",
+      "date": "2026-10-06T19:28:53Z",
+      "category": "Platform & Data",
+      "title": "Fix JavaScript syntax in QoL layer",
+      "summary": "Fix JavaScript syntax in QoL layer"
+    },
+    {
+      "sha": "96d00d5d7f017b507b6840f7a603ca606891c5fb",
+      "date": "2026-10-06T19:11:01Z",
+      "category": "Match Tracking",
+      "title": "Restore static hosting and persist Late Game records",
+      "summary": "Restore static hosting and persist Late Game records"
+    },
+    {
+      "sha": "bf1f9c8632237c94f078b06fc09e6632a5da04d5",
+      "date": "2026-10-06T19:10:50Z",
+      "category": "Other",
+      "title": "Polish CRIB responsive QoL styling",
+      "summary": "Polish CRIB responsive QoL styling"
+    },
+    {
+      "sha": "9d02ed5afbb0d36d66845b4315b959079cef97d6",
+      "date": "2026-10-06T19:10:48Z",
+      "category": "Interface & Design",
+      "title": "Optimize CRIB dashboard and add quality of life tools",
+      "summary": "Optimize CRIB dashboard and add quality of life tools"
+    }
+  ]
+}
