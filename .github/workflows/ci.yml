@@ -6,12 +6,17 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   syntax:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -20,5 +25,18 @@ jobs:
         run: node --check server.js
       - name: Validate browser JavaScript
         run: node --check script.js
+      - name: Validate changelog generator
+        run: node --check scripts/generate-changelog.js
       - name: Validate package.json
         run: node -e "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8'))"
+      - name: Refresh dated update tree
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          node scripts/generate-changelog.js
+          if ! git diff --quiet -- updates.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add updates.json
+            git commit -m "chore: refresh update tree [skip ci]"
+            git push
+          fi
