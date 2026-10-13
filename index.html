@@ -17,6 +17,7 @@
     <nav>
       <button class="nav active" data-page="dashboard"><i>⌂</i>Overview</button>
       <button class="nav" data-page="profile"><i>◆</i>My Profile</button>
+      <button class="nav" data-page="tracker"><i>◈</i>Player Tracker</button>
       <button class="nav" data-page="scrims"><i>⚔</i>Scrims</button>
       <button class="nav" data-page="winstreak"><i>🔥</i>Winstreak 1v1</button>
       <button class="nav" data-page="late"><i>⚡</i>Late Games</button>
@@ -25,7 +26,8 @@
       <button class="nav" data-page="kits"><i>✦</i>Kit Library</button>
       <button class="nav" data-page="compare"><i>⇄</i>Kit Compare</button>
       <button class="nav" data-page="players"><i>◎</i>Players</button>
-      <button class="nav" data-page="leaderboards"><i>🏆</i>Leaderboards</button>
+      <button class="nav" data-page="leaderboards"><i>🏆</i>Best Players</button>
+      <button class="nav" data-page="playercompare"><i>⇄</i>Compare Players</button>
       <button class="nav" data-page="admin"><i>⚙</i>Admin</button>
     </nav>
     <div class="side-bottom"><span class="status-dot" id="statusDot"></span><div><b id="serverStatus">Connecting…</b><small>CRIB database</small></div></div>
@@ -82,7 +84,7 @@
       </section>
 
       <section class="page" id="profile-page">
-        <div class="section-head"><div><h1>Player Profile</h1><p>Rank progression, hidden skill ratings and competitive history.</p></div><button class="ghost" id="profileRecordBtn">+ Record Match</button></div>
+        <div class="section-head"><div><h1>Player Profile</h1><p>Rank progression, hidden skill ratings and competitive history.</p></div><div class="hero-actions"><button class="ghost" id="profileOpenTrackerBtn">Open Tracker</button><button class="ghost" id="profileRecordBtn">+ Record Match</button></div></div>
         <div class="profile-banner card"><div class="profile-id"><div class="avatar xl" id="profileAvatar">--</div><div><h2 id="profileDisplayName">No player selected</h2><span id="profileUsername">@username</span><div class="profile-tags"><span class="pill" id="rankChip">UNRANKED IV</span><span class="pill subtle">SEASON 01</span></div></div></div><img id="profileRankArt" class="rank-img profile-rank-img" src="assets/ranks/coal.svg" alt="Rank emblem"></div>
         <div class="stat-grid five"><div class="stat"><span>RP</span><strong id="profileRP">0</strong><small id="profileRPDelta">Current</small></div><div class="stat"><span>Peak RP</span><strong id="profilePeakRP">0</strong><small>Best ever</small></div><div class="stat"><span>Wins</span><strong id="profileWins">0</strong><small id="profileWinsLosses">0 / 0</small></div><div class="stat"><span>Win Rate</span><strong id="profileWinRate">0%</strong><small id="profileGames">0 games</small></div><div class="stat"><span>CRIB Rating</span><strong id="profileCribRating">1000</strong><small id="profilePercentile">Unranked</small></div></div>
         <div class="two-col">
@@ -92,6 +94,58 @@
         <div class="section-head"><div><h3>Combat & Objective</h3><p>Lifetime match output</p></div></div>
         <div class="metric-card-grid"><div class="metric"><span>Kills</span><b id="profileKills">0</b></div><div class="metric"><span>Deaths</span><b id="profileDeaths">0</b></div><div class="metric"><span>K/D</span><b id="profileKD">0.00</b></div><div class="metric"><span>Beds</span><b id="profileBeds">0</b></div><div class="metric"><span>Winstreak</span><b id="profileWinstreak">0</b></div><div class="metric"><span>Best Streak</span><b id="profileBestStreak">0</b></div></div>
         <article class="card table-card"><div class="card-top"><div><h3>Rank History</h3><p>Every saved RP change</p></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Rank</th><th>RP</th><th>Change</th><th>Event</th></tr></thead><tbody id="rankHistoryTable"></tbody></table></div></article>
+      </section>
+
+      <section class="page" id="tracker-page">
+        <div class="section-head">
+          <div><h1>BedWars Player Tracker</h1><p>Rank, match history, win rates and CRIB rating from recorded CRIB matches.</p></div>
+          <button class="ghost" id="trackerOpenProfileBtn">Open Full Profile ↗</button>
+        </div>
+        <article class="card tracker-search-card">
+          <div class="tracker-search-label"><span class="tracker-search-icon">⌕</span><div><b>Find a player</b><small>Search CRIB profiles by username or display name.</small></div></div>
+          <input id="trackerSearchInput" placeholder="Search a CRIB player…" autocomplete="off">
+          <div id="trackerPlayerResults" class="tracker-player-results"></div>
+        </article>
+        <div class="tracker-header card">
+          <div class="tracker-player-identity">
+            <div id="trackerAvatar" class="avatar xl">--</div>
+            <div><div class="eyebrow">CRIB PLAYER PROFILE</div><h2 id="trackerName">No player selected</h2><p id="trackerHandle">@player · recorded ranked profile</p>
+              <div class="profile-tags"><span class="pill" id="trackerRankChip">UNRANKED IV</span><span class="pill subtle" id="trackerSampleChip">0 recorded matches</span></div>
+            </div>
+          </div>
+          <div class="tracker-primary-rating"><span>Current RP</span><strong id="trackerCurrentRP">0</strong><small id="trackerRPContext">Peak 0 RP</small></div>
+          <div class="tracker-primary-rating"><span>CRIB Rating</span><strong id="trackerCurrentRating">1000</strong><small id="trackerMMRContext">MMR 1000 · provisional</small></div>
+        </div>
+        <div class="tracker-top-grid">
+          <article class="card tracker-dna-card">
+            <div class="card-top"><div><h3>BedWars DNA</h3><p>Playstyle snapshot calculated from available CRIB records</p></div><span class="pill subtle">Profile</span></div>
+            <div class="tracker-dna-layout"><div id="trackerRadar" class="tracker-radar" aria-label="Player playstyle radar"></div><div id="trackerStyleBars" class="tracker-style-bars"></div></div>
+            <p class="source-note">Style scores are estimates from recorded match statistics, not official Roblox telemetry.</p>
+          </article>
+          <div class="tracker-rate-stack">
+            <div class="tracker-rates">
+              <article class="card tracker-rate-card"><span>Overall Win Rate</span><div class="tracker-donut" id="trackerOverallDonut"><b id="trackerOverallRate">0%</b><small>WIN RATE</small></div><div class="tracker-record" id="trackerOverallRecord">0 W · 0 L</div></article>
+              <article class="card tracker-rate-card"><span>Scrim Win Rate</span><div class="tracker-donut" id="trackerScrimDonut"><b id="trackerScrimRate">0%</b><small>WIN RATE</small></div><div class="tracker-record" id="trackerScrimRecord">0 W · 0 L</div></article>
+              <article class="card tracker-rate-card"><span>Late Game Win Rate</span><div class="tracker-donut" id="trackerLGDonut"><b id="trackerLGRate">0%</b><small>WIN RATE</small></div><div class="tracker-record" id="trackerLGRecord">0 W · 0 L</div></article>
+            </div>
+            <article class="card tracker-trend-card">
+              <div class="card-top"><div><h3>Recent Form</h3><p>RP progression across the latest recorded matches</p></div><span class="pill subtle">Last 20</span></div>
+              <canvas id="trackerFormChart" class="tracker-form-chart" aria-label="Recent RP progression chart"></canvas>
+              <div class="tracker-form-summary"><span id="trackerRecentForm">No recent data</span><span id="trackerRecentDelta">0 RP</span></div>
+            </article>
+          </div>
+        </div>
+        <div class="section-head"><div><h3>Competitive Snapshot</h3><p>Ratings and combat/objective output saved by CRIB.</p></div></div>
+        <div class="tracker-snapshot-grid">
+          <div class="card tracker-snapshot"><span>Peak RP</span><b id="trackerPeakRP">0</b><small>Highest recorded</small></div>
+          <div class="card tracker-snapshot"><span>Hidden MMR</span><b id="trackerMMR">1000</b><small id="trackerMMRStatus">Provisional</small></div>
+          <div class="card tracker-snapshot"><span>K / D</span><b id="trackerKD">0.00</b><small id="trackerKDDetail">0 kills · 0 deaths</small></div>
+          <div class="card tracker-snapshot"><span>Beds Destroyed</span><b id="trackerBeds">0</b><small>Recorded lifetime total</small></div>
+          <div class="card tracker-snapshot"><span>Best Winstreak</span><b id="trackerBestStreak">0</b><small id="trackerCurrentStreak">Current: 0</small></div>
+          <div class="card tracker-snapshot"><span>Late Game ELO</span><b id="trackerLateElo">1000</b><small>Separate LG rating</small></div>
+        </div>
+        <div class="section-head"><div><h3>Recent Ranked Matches</h3><p>Recorded scrims, No-Bed matches, Winstreak 1v1s and Late Games.</p></div><button class="text" id="trackerOpenVaultBtn">Open match vault →</button></div>
+        <article class="card table-card"><div class="table-wrap"><table><thead><tr><th>Match</th><th>Mode</th><th>Kit</th><th>Result</th><th>Score</th><th>RP Change</th><th>Date</th></tr></thead><tbody id="trackerRecentMatches"></tbody></table></div></article>
       </section>
 
       <section class="page" id="scrims-page">
@@ -132,6 +186,17 @@
         <div id="kitComparisonResult" class="compare-grid"></div>
       </section>
 
+      <section class="page" id="playercompare-page">
+        <div class="section-head"><div><h1>Compare Players</h1><p>Compare two CRIB BedWars ranked profiles side by side.</p></div></div>
+        <article class="card player-compare-controls">
+          <label>Player A<select id="playerCompareA"><option value="">Choose player…</option></select></label>
+          <div class="player-compare-vs">VS</div>
+          <label>Player B<select id="playerCompareB"><option value="">Choose player…</option></select></label>
+          <button class="primary" id="comparePlayersBtn">Compare Players</button>
+        </article>
+        <div id="playerComparisonResult" class="player-comparison-result"><div class="card muted-line">Choose two CRIB profiles to compare their ranked records.</div></div>
+      </section>
+
       <section class="page" id="players-page">
         <div class="section-head"><div><h1>Players</h1><p>Registered CRIB profiles and competitive records.</p></div><button class="primary" id="playersCreateBtn">+ Create Player</button></div>
         <div class="card toolbar"><input id="playerSearchInput" placeholder="Search players…"></div>
@@ -139,7 +204,8 @@
       </section>
 
       <section class="page" id="leaderboards-page">
-        <div class="section-head"><div><h1>Leaderboards</h1><p>Different ways to measure competitive performance.</p></div></div>
+        <div class="section-head"><div><h1>Best Players</h1><p>Top CRIB players by ranked performance. Select a category to change the standings.</p></div></div>
+        <div id="leaderboardPodium" class="leaderboard-podium"></div>
         <div class="card toolbar"><select id="leaderboardFilter"><option value="overall">Overall · CRIB Rating</option><option value="highest-rp">Highest RP</option><option value="highest-streak">Highest Winstreak</option><option value="highest-performance">Highest Performance</option><option value="highest-mmr">Highest MMR</option><option value="highest-scrim-mmr">Highest Scrim MMR</option><option value="highest-late-elo">Highest Late Game ELO</option><option value="most-beds">Most Beds</option><option value="most-kills">Most Kills</option><option value="most-wins">Most Wins</option><option value="best-winrate">Best Win Rate</option></select></div>
         <article class="card"><div id="leaderboardTable" class="leaderboard-large"></div></article>
       </section>
