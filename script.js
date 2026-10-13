@@ -162,7 +162,7 @@ function renderTrackerSearch(){
   box.innerHTML=found.map(p=>`<button class="tracker-result" data-track-player="${esc(p.id)}"><span class="avatar">${esc(initials(p.displayName))}</span><span class="tracker-result-name"><b>${esc(p.displayName)}</b><small>@${esc(p.username)} · ${esc(rankData(p.rp).label)}</small></span><strong>${num(p.rp)} RP</strong><span class="tracker-result-arrow">↗</span></button>`).join("")||'<div class="muted-line tracker-no-results">No matching CRIB profiles.</div>';
 }
 function setTrackerDonut(id,rate){
-  const e=$(id);if(e)e.style.setProperty("--rate",String(trackerPct(rate)));
+  const e=$(id);if(e)e.style.setProperty("--rate",trackerPct(rate)+"%");
 }
 function renderTracker(){
   renderTrackerSearch();
@@ -426,5 +426,5 @@ $("scrimModeSelect")?.addEventListener("change",updateModeFields);
 $("playerSearchInput")?.addEventListener("input",renderPlayers);$("leaderboardFilter")?.addEventListener("change",renderLeaderboard);
 document.querySelectorAll("[data-chart-range]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-chart-range]").forEach(x=>x.classList.remove("active"));b.classList.add("active");drawChart()}));
 document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-backdrop.open").forEach(x=>x.classList.remove("open"));if(e.ctrlKey&&e.key.toLowerCase()==="k"){e.preventDefault();openPage("tracker");$("trackerSearchInput")?.focus()}if(e.ctrlKey&&e.key.toLowerCase()==="n"){e.preventDefault();show("scrimModal")}});
-window.addEventListener("resize",()=>{drawChart();drawAnalytics()});
+window.addEventListener("resize",()=>{drawChart();drawAnalytics();if(document.getElementById("tracker-page")?.classList.contains("active"))drawTrackerChart()});
 refresh().catch(e=>{text("serverStatus","OFFLINE");$("statusDot")?.style.setProperty("background","var(--bad)");toast("CRIB server offline — run npm start");console.error(e)});
