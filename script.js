@@ -32,9 +32,11 @@ function openPage(page){
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   $(page+"-page")?.classList.add("active");
   document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="leaderboards"?"Leaderboards":page==="late"?"Late Games":page==="winstreak"?"Winstreak 1v1":page==="scrims"?"Scrims":page==="kits"?"Kit Library":page==="compare"?"Kit Compare":page==="players"?"Players":page==="statistics"?"Statistics":page==="updates"?"Update Tree":page==="admin"?"Admin":page);
+  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="tracker"?"Player Tracker":page==="playercompare"?"Compare Players":page==="leaderboards"?"Best Players":page==="late"?"Late Games":page==="winstreak"?"Winstreak 1v1":page==="scrims"?"Scrims":page==="kits"?"Kit Library":page==="compare"?"Kit Compare":page==="players"?"Players":page==="statistics"?"Statistics":page==="updates"?"Update Tree":page==="admin"?"Admin":page);
   window.scrollTo({top:0,behavior:"smooth"});
   if(page==="statistics")drawAnalytics();
+  if(page==="tracker"){renderTracker();drawTrackerChart();}
+  if(page==="playercompare")renderPlayerComparison();
 }
 function toast(msg){
   let t=$("toast");if(!t){t=document.createElement("div");t.id="toast";t.style.cssText="position:fixed;right:22px;bottom:22px;z-index:100;padding:12px 15px;border:1px solid #493460;border-radius:12px;background:#151020;color:#fff;box-shadow:0 15px 50px #000";document.body.appendChild(t)}
@@ -48,7 +50,7 @@ async function refresh(){
   renderAll();populateKits();drawChart();drawAnalytics();loadUpdateTree().catch(()=>{text("updateCount","History unavailable");text("updateTree","Could not load updates.json.")});
   text("serverStatus","ONLINE");$("statusDot")?.style.setProperty("background","var(--good)");
 }
-function renderAll(){renderPlayerSwitch();renderPlayer();renderRecent();renderMatches();renderPlayers();renderKits();renderCompare();renderLeaderboard();renderLate();renderWinstreak();renderStats();renderAdmin();renderUpdateTree();updateModeFields()}
+function renderAll(){renderPlayerSwitch();renderPlayer();renderRecent();renderMatches();renderPlayers();renderKits();renderCompare();renderLeaderboard();renderLate();renderWinstreak();renderStats();renderAdmin();renderUpdateTree();renderTracker();renderPlayerComparison();updateModeFields()}
 async function loadUpdateTree(){
  const response=await fetch("updates.json",{cache:"no-store"});
  if(!response.ok)throw new Error("Update history request failed");
@@ -134,6 +136,138 @@ function renderCompare(){
   const card=k=>`<article class="compare-card"><img class="rank-img medium" src="${rankImg(Math.max(0,num(k.power)*60))}" alt=""><span class="pill">${esc(k.tier||"—")} · ${esc(k.class||"Other")}</span><h2>${esc(k.name)}</h2><div class="power">${num(k.power)}<span>/100 power</span></div><p>Scrim RP modifier <b>×${num(k.rpMultiplier).toFixed(3)}</b></p><p>${esc(k.description||"Mechanic not supplied")}</p><div class="muted-line">Compared with ${esc(k.name===a.name?b.name:a.name)}, equivalent performance earns approximately ${Math.abs(num(k.rpMultiplier-(k.name===a.name?b.rpMultiplier:a.rpMultiplier))*100).toFixed(1)} percentage points of RP difference.</div></article>`;
   box.innerHTML=card(a)+card(b);
 }
+
+function trackerModeStats(ms){
+  const games=ms.length,wins=ms.filter(m=>m.result==="Win").length,losses=ms.filter(m=>m.result==="Loss").length;
+  return {games,wins,losses,rate:games?wins/games*100:0};
+}
+function trackerPct(value){return Math.max(0,Math.min(100,Number(value)||0))}
+function trackerRadarMarkup(values){
+  const labels=["Combat","Beds","Consistency","Grind","Late Game","RP Climb"],cx=150,cy=122,r=76;
+  const point=(i,scale)=>{const a=(-90+i*60)*Math.PI/180;return [cx+Math.cos(a)*r*scale,cy+Math.sin(a)*r*scale]};
+  const poly=scale=>labels.map((_,i)=>point(i,scale).map(n=>n.toFixed(1)).join(",")).join(" ");
+  const valuePoly=values.map((v,i)=>point(i,trackerPct(v)/100).map(n=>n.toFixed(1)).join(",")).join(" ");
+  const axes=labels.map((l,i)=>{const [x,y]=point(i,1.21);const anchor=x<cx-12?"end":x>cx+12?"start":"middle";return `<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="${anchor}">${l}</text>`}).join("");
+  const spokes=labels.map((_,i)=>{const [x,y]=point(i,1);return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/>`}).join("");
+  return `<svg viewBox="0 0 300 260" role="img" aria-label="Estimated playstyle profile"><polygon class="radar-grid" points="${poly(1)}"/><polygon class="radar-grid" points="${poly(.75)}"/><polygon class="radar-grid" points="${poly(.5)}"/><polygon class="radar-grid" points="${poly(.25)}"/>${spokes}<polygon class="radar-value" points="${valuePoly}"/>${values.map((v,i)=>{const [x,y]=point(i,trackerPct(v)/100);return `<circle class="radar-point" cx="${x}" cy="${y}" r="3.5"/>`}).join("")}${axes}</svg>`;
+}
+function trackerRecentProfileMatches(p){
+  return matches.filter(m=>m.playerId===p?.id).slice().sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+}
+function renderTrackerSearch(){
+  const box=$("trackerPlayerResults");if(!box)return;
+  const q=String($("trackerSearchInput")?.value||"").trim().toLowerCase();
+  const ordered=[...players].sort((a,b)=>num(b.cribRating)-num(a.cribRating));
+  const found=ordered.filter(p=>(String(p.displayName||"")+" "+String(p.username||"")).toLowerCase().includes(q)).slice(0,7);
+  box.innerHTML=found.map(p=>`<button class="tracker-result" data-track-player="${esc(p.id)}"><span class="avatar">${esc(initials(p.displayName))}</span><span class="tracker-result-name"><b>${esc(p.displayName)}</b><small>@${esc(p.username)} · ${esc(rankData(p.rp).label)}</small></span><strong>${num(p.rp)} RP</strong><span class="tracker-result-arrow">↗</span></button>`).join("")||'<div class="muted-line tracker-no-results">No matching CRIB profiles.</div>';
+}
+function setTrackerDonut(id,rate){
+  const e=$(id);if(e)e.style.setProperty("--rate",trackerPct(rate)+"%");
+}
+function renderTracker(){
+  renderTrackerSearch();
+  const p=active;
+  if(!p){
+    ["trackerName","trackerHandle"].forEach(id=>text(id,"No player selected"));
+    ["trackerCurrentRP","trackerPeakRP","trackerCurrentRating","trackerMMR","trackerKD","trackerBeds","trackerBestStreak","trackerLateElo"].forEach(id=>text(id,"—"));
+    const empty=$("trackerRecentMatches");if(empty)empty.innerHTML='<tr><td colspan="7" class="muted-line">Create or select a CRIB profile to see ranked tracker data.</td></tr>';
+    const radar=$("trackerRadar");if(radar)radar.innerHTML='<div class="muted-line">No profile data yet.</div>';
+    const bars=$("trackerStyleBars");if(bars)bars.innerHTML="";
+    return;
+  }
+  const rd=rankData(p.rp),ms=trackerRecentProfileMatches(p),overall=trackerModeStats(ms);
+  const scrims=trackerModeStats(ms.filter(m=>m.mode==="STANDARD_SCRIM"||m.mode==="NO_BED_SCRIM"));
+  const lg=trackerModeStats(ms.filter(m=>m.mode==="LG"));
+  const games=Math.max(ms.length,num(p.wins)+num(p.losses));
+  const wr=ms.length?overall.rate:(games?num(p.wins)/games*100:0);
+  const kd=num(p.deaths)?num(p.kills)/num(p.deaths):num(p.kills);
+  text("trackerAvatar",initials(p.displayName));text("trackerName",p.displayName);text("trackerHandle","@"+p.username+" · CRIB ranked profile");
+  text("trackerRankChip",rd.label.toUpperCase());text("trackerSampleChip",ms.length+" recorded match"+(ms.length===1?"":"es"));
+  text("trackerCurrentRP",num(p.rp).toLocaleString());text("trackerRPContext","Peak "+num(p.peakRP).toLocaleString()+" RP");
+  text("trackerCurrentRating",num(p.cribRating??1000).toLocaleString());text("trackerMMRContext","MMR "+num(p.mmr??1000)+(num(p.mmrGames)<10?" · provisional":" · established"));
+  const setRate=(id,donutId,recordId,stats,fallback)=>{const rate=stats.games?stats.rate:fallback;text(id,rate.toFixed(1)+"%");setTrackerDonut(donutId,rate);text(recordId,stats.games?stats.wins+" W · "+stats.losses+" L":(fallback? "Profile record":"0 W · 0 L"));};
+  setRate("trackerOverallRate","trackerOverallDonut","trackerOverallRecord",overall,wr);
+  setRate("trackerScrimRate","trackerScrimDonut","trackerScrimRecord",scrims,0);
+  setRate("trackerLGRate","trackerLGDonut","trackerLGRecord",lg,0);
+  text("trackerPeakRP",num(p.peakRP).toLocaleString());text("trackerMMR",num(p.mmr??1000).toLocaleString());
+  text("trackerMMRStatus",num(p.mmrGames)<10?"Provisional · "+num(p.mmrGames)+"/10 matches":"Established · "+num(p.mmrGames)+" matches");
+  text("trackerKD",kd.toFixed(2));text("trackerKDDetail",num(p.kills)+" kills · "+num(p.deaths)+" deaths");
+  text("trackerBeds",num(p.beds).toLocaleString());text("trackerBestStreak",num(p.bestStreak).toLocaleString());
+  text("trackerCurrentStreak","Current: "+num(p.winstreak));text("trackerLateElo",num(p.lateElo??1000).toLocaleString());
+  const denominator=Math.max(1,ms.length||games),avgKills=num(p.kills)/denominator,avgBeds=num(p.beds)/denominator;
+  const formTail=ms.slice(-20),recentWR=formTail.length?formTail.filter(m=>m.result==="Win").length/formTail.length*100:0;
+  const rpDelta=formTail.reduce((s,m)=>s+num(m.rp),0);
+  const styles=[
+    ["Combat",avgKills/6*100],["Bed pressure",avgBeds/2.5*100],["Consistency",ms.length?50+(recentWR-50)*.9:50],
+    ["Match volume",games/50*100],["Late-game",num(p.lateElo??1000)/20],["RP climb",(num(p.rp)/60)]
+  ].map(([label,value])=>[label,trackerPct(value)]);
+  const radar=$("trackerRadar");if(radar)radar.innerHTML=trackerRadarMarkup(styles.map(x=>x[1]));
+  const bars=$("trackerStyleBars");if(bars)bars.innerHTML=styles.map(([name,value])=>`<div class="tracker-style-row"><div><span>${esc(name)}</span><b>${Math.round(value)}</b></div><div class="tracker-style-track"><i style="width:${value}%"></i></div></div>`).join("");
+  text("trackerRecentForm",formTail.length?formTail.slice(-5).map(m=>m.result==="Win"?"W":m.result==="Loss"?"L":"·").join(" "):"No recent data");
+  text("trackerRecentDelta",(rpDelta>=0?"+":"")+rpDelta+" RP");
+  const table=$("trackerRecentMatches");
+  if(table){
+    table.innerHTML=ms.slice().reverse().slice(0,12).map(m=>`<tr><td><b>#${esc(String(m.id||"match").slice(-7))}</b><small class="muted-line">${esc(fmtDate(m.createdAt))}</small></td><td>${esc(modeName(m.mode||m.type))}</td><td>${esc(m.kit||"—")}</td><td class="${m.result==="Win"?"rp-good":"rp-bad"}"><b>${esc(m.result||"—")}</b></td><td>${num(m.scoreFor)} — ${num(m.scoreAgainst)}</td><td class="${num(m.rp)>=0?"rp-good":"rp-bad"}">${num(m.rp)>=0?"+":""}${num(m.rp)} RP</td><td>${esc(fmtDate(m.createdAt))}</td></tr>`).join("")||'<tr><td colspan="7" class="muted-line">No matches recorded for this player yet.</td></tr>';
+  }
+  drawTrackerChart();
+}
+function drawTrackerChart(){
+  const p=active,ms=p?trackerRecentProfileMatches(p).slice(-20):[];
+  let running=(p?.rp??0)-ms.reduce((n,m)=>n+num(m.rp),0);
+  const values=[running];ms.forEach(m=>{running+=num(m.rp);values.push(running)});
+  drawCanvas($("trackerFormChart"),values.length>1?values:[p?.rp??0]);
+}
+function comparePlayerStats(p){
+  const ms=trackerRecentProfileMatches(p),g=ms.length||num(p.wins)+num(p.losses),wins=ms.length?ms.filter(m=>m.result==="Win").length:num(p.wins),losses=ms.length?ms.filter(m=>m.result==="Loss").length:num(p.losses);
+  const wr=(wins+losses)?wins/(wins+losses)*100:0,kd=num(p.deaths)?num(p.kills)/num(p.deaths):num(p.kills);
+  return {p,ms,g,wins,losses,wr,kd,stats:[
+    ["Current RP",num(p.rp)],["Peak RP",num(p.peakRP)],["CRIB Rating",num(p.cribRating??1000)],
+    ["Hidden MMR",num(p.mmr??1000)],["Win Rate",wr],["K / D",kd],["Kills",num(p.kills)],
+    ["Beds Destroyed",num(p.beds)],["Best Winstreak",num(p.bestStreak)],["Late Game ELO",num(p.lateElo??1000)]
+  ]};
+}
+function renderPlayerComparison(){
+  const a=$("playerCompareA"),b=$("playerCompareB"),out=$("playerComparisonResult");if(!a||!b||!out)return;
+  const key=players.map(p=>p.id).join("|");
+  if(a.dataset.playerSet!==key||b.dataset.playerSet!==key){
+    const oldA=a.value,oldB=b.value;
+    const options='<option value="">Choose player…</option>'+players.map(p=>`<option value="${esc(p.id)}">${esc(p.displayName)} (@${esc(p.username)})</option>`).join("");
+    a.innerHTML=options;b.innerHTML=options;a.dataset.playerSet=key;b.dataset.playerSet=key;
+    a.value=players.some(p=>p.id===oldA)?oldA:(active?.id||"");
+    b.value=players.some(p=>p.id===oldB)?oldB:(players.find(p=>p.id!==a.value)?.id||"");
+  }
+  const pa=players.find(p=>p.id===a.value),pb=players.find(p=>p.id===b.value);
+  if(!pa||!pb){out.innerHTML='<div class="card muted-line">Create at least two CRIB profiles to compare players.</div>';return}
+  if(pa.id===pb.id){out.innerHTML='<div class="card muted-line">Choose two different players to compare their records.</div>';return}
+  const A=comparePlayerStats(pa),B=comparePlayerStats(pb);
+  const left=A.stats.map(([label,av],i)=>{const bv=B.stats[i][1],max=Math.max(Math.abs(num(av)),Math.abs(num(bv)),1),aw=trackerPct(Math.abs(num(av))/max*100),bw=trackerPct(Math.abs(num(bv))/max*100);
+    const fmt=(value)=>label==="Win Rate"?num(value).toFixed(1)+"%":label==="K / D"?num(value).toFixed(2):num(value).toLocaleString(undefined,{maximumFractionDigits:2});
+    return `<div class="player-compare-stat"><div class="player-compare-label"><span>${esc(label)}</span></div><div class="player-compare-values"><b class="compare-value-a">${fmt(av)}</b><div class="compare-bars"><i class="compare-bar-a" style="width:${aw}%"></i><i class="compare-bar-b" style="width:${bw}%"></i></div><b class="compare-value-b">${fmt(bv)}</b></div></div>`;
+  }).join("");
+  const aWins=A.wins,aLoss=A.losses,bWins=B.wins,bLoss=B.losses;
+  const opponentRecord=(source,target)=>source.ms.filter(m=>{const words=[m.opponent,...(Array.isArray(m.opponents)?m.opponents:[])].filter(Boolean).join(" ").toLowerCase();return words.includes(String(target.username||"").toLowerCase())||words.includes(String(target.displayName||"").toLowerCase())});
+  const ha=opponentRecord(A,pb),hb=opponentRecord(B,pa),both=[...ha,...hb];
+  const h2h=both.length?both.map(m=>`${m.result==="Win"?"W":m.result==="Loss"?"L":"·"} ${modeName(m.mode||m.type)}`).slice(-10).join(" · "):"No direct head-to-head matches found in the recorded CRIB match vault.";
+  out.innerHTML=`<div class="player-comparison-head"><article class="card compare-player-card compare-a"><div class="avatar xl">${esc(initials(pa.displayName))}</div><span class="pill">${esc(rankData(pa.rp).label)}</span><h2>${esc(pa.displayName)}</h2><small>@${esc(pa.username)}</small><strong>${num(pa.rp).toLocaleString()} RP</strong><span>${A.wins} W · ${A.losses} L · ${A.wr.toFixed(1)}% WR</span></article><div class="compare-vs-orb">VS</div><article class="card compare-player-card compare-b"><div class="avatar xl">${esc(initials(pb.displayName))}</div><span class="pill">${esc(rankData(pb.rp).label)}</span><h2>${esc(pb.displayName)}</h2><small>@${esc(pb.username)}</small><strong>${num(pb.rp).toLocaleString()} RP</strong><span>${B.wins} W · ${B.losses} L · ${B.wr.toFixed(1)}% WR</span></article></div><article class="card player-compare-metrics"><div class="card-top"><div><h3>Competitive Comparison</h3><p>Bars are scaled relative to the higher displayed value.</p></div></div>${left}</article><article class="card h2h-card"><div><h3>Head-to-Head</h3><p>${esc(h2h)}</p></div><div class="h2h-record"><b>${ha.filter(m=>m.result==="Win").length}</b><small>A wins</small><span>·</span><b>${hb.filter(m=>m.result==="Win").length}</b><small>B wins</small></div></article>`;
+}
+
+// Tracker actions are bound once, against the existing server-backed profile/match data.
+$("trackerSearchInput")?.addEventListener("input",renderTrackerSearch);
+$("trackerPlayerResults")?.addEventListener("click",e=>{
+  const button=e.target.closest("[data-track-player]");if(!button)return;
+  active=players.find(p=>p.id===button.dataset.trackPlayer)||active;saveActive();renderAll();openPage("tracker");
+});
+$("trackerOpenProfileBtn")?.addEventListener("click",()=>openPage("profile"));
+$("trackerOpenVaultBtn")?.addEventListener("click",()=>openPage("scrims"));
+$("profileOpenTrackerBtn")?.addEventListener("click",()=>openPage("tracker"));
+$("playerCompareA")?.addEventListener("change",renderPlayerComparison);
+$("playerCompareB")?.addEventListener("change",renderPlayerComparison);
+$("comparePlayersBtn")?.addEventListener("click",renderPlayerComparison);
+$("leaderboardPodium")?.addEventListener("click",e=>{
+  const button=e.target.closest("[data-podium-player]");if(!button)return;
+  active=players.find(p=>p.id===button.dataset.podiumPlayer)||active;saveActive();renderAll();openPage("tracker");
+});
+
 function renderPlayers(){
   const tb=$("playersTableBody");if(!tb)return;
   const q=($("playerSearchInput")?.value||"").toLowerCase();
@@ -166,6 +300,11 @@ function renderLeaderboard(){
       p.cribRating;
   };
   arr.sort((a,b)=>num(score(b))-num(score(a)));
+  const podium=$("leaderboardPodium");
+  if(podium){
+    const top=arr.slice(0,3),medals=["1st","2nd","3rd"],colors=["gold","silver","bronze"];
+    podium.innerHTML=top.map((p,i)=>{const s=stats(p),wr=s.games?s.wins/s.games*100:0,value=type==="best-winrate"?wr.toFixed(1)+"%":num(score(p));return `<button class="podium-card ${colors[i]}" data-podium-player="${esc(p.id)}"><span class="podium-place">${medals[i]}</span><span class="podium-avatar">${esc(initials(p.displayName))}</span><b>${esc(p.displayName)}</b><small>${esc(rankData(p.rp).label)} · ${num(p.rp)} RP</small><strong>${value}</strong></button>`}).join("");
+  }
   box.innerHTML=arr.map((p,i)=>{
     const s=stats(p),wr=s.games?s.wins/s.games*100:0;
     const record=s.games?s.wins+"-"+(s.games-s.wins):"0-0";
@@ -279,13 +418,13 @@ $("activePlayerSelect")?.addEventListener("change",e=>selectPlayer(e.target.valu
 $("quickAddLGBtn")?.addEventListener("click",()=>show("lateGameModal"));$("openLateGameBtn")?.addEventListener("click",()=>show("lateGameModal"));
 $("openWinstreakBtn")?.addEventListener("click",()=>{show("scrimModal");$("scrimModeSelect").value="WINSTREAK_1V1";updateModeFields()});
 $("createPlayerSubmit")?.addEventListener("click",createPlayer);$("saveScrimBtn")?.addEventListener("click",saveScrim);$("saveLateGameBtn")?.addEventListener("click",saveLG);$("adminLoginBtn")?.addEventListener("click",unlockAdmin);$("saveServerConfigBtn")?.addEventListener("click",saveConfig);
-$("openProfileBtn")?.addEventListener("click",()=>openPage("profile"));$("recentMatchesBtn")?.addEventListener("click",()=>openPage("scrims"));$("leaderboardOpenBtn")?.addEventListener("click",()=>openPage("leaderboards"));$("globalSearchBtn")?.addEventListener("click",()=>{openPage("scrims");$("scrimSearch")?.focus()});
+$("openProfileBtn")?.addEventListener("click",()=>openPage("profile"));$("recentMatchesBtn")?.addEventListener("click",()=>openPage("scrims"));$("leaderboardOpenBtn")?.addEventListener("click",()=>openPage("leaderboards"));$("globalSearchBtn")?.addEventListener("click",()=>{openPage("tracker");$("trackerSearchInput")?.focus()});
 $("scrimModeSelect")?.addEventListener("change",updateModeFields);
 ["scrimSearch","scrimFilterMode","scrimFilterKit","scrimFilterResult"].forEach(id=>$(id)?.addEventListener("input",renderMatches));
 ["kitSearch","kitClassFilter","kitTierFilter","kitStatusFilter","kitSort"].forEach(id=>$(id)?.addEventListener("input",renderKits));
 ["compareKitA","compareKitB"].forEach(id=>$(id)?.addEventListener("change",renderCompare));
 $("playerSearchInput")?.addEventListener("input",renderPlayers);$("leaderboardFilter")?.addEventListener("change",renderLeaderboard);
 document.querySelectorAll("[data-chart-range]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-chart-range]").forEach(x=>x.classList.remove("active"));b.classList.add("active");drawChart()}));
-document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-backdrop.open").forEach(x=>x.classList.remove("open"));if(e.ctrlKey&&e.key.toLowerCase()==="k"){e.preventDefault();openPage("scrims");$("scrimSearch")?.focus()}if(e.ctrlKey&&e.key.toLowerCase()==="n"){e.preventDefault();show("scrimModal")}});
-window.addEventListener("resize",()=>{drawChart();drawAnalytics()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-backdrop.open").forEach(x=>x.classList.remove("open"));if(e.ctrlKey&&e.key.toLowerCase()==="k"){e.preventDefault();openPage("tracker");$("trackerSearchInput")?.focus()}if(e.ctrlKey&&e.key.toLowerCase()==="n"){e.preventDefault();show("scrimModal")}});
+window.addEventListener("resize",()=>{drawChart();drawAnalytics();if(document.getElementById("tracker-page")?.classList.contains("active"))drawTrackerChart()});
 refresh().catch(e=>{text("serverStatus","OFFLINE");$("statusDot")?.style.setProperty("background","var(--bad)");toast("CRIB server offline — run npm start");console.error(e)});
