@@ -164,7 +164,7 @@ th,td{border-bottom-color:#302015}
 .tracker-rates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
 .tracker-rate-card{min-width:0;padding:12px 8px;text-align:center}
 .tracker-rate-card>span{display:block;font-size:10px;color:#c7c0d4;min-height:27px}
-.tracker-donut{--rate:0;--ring-color:#34d399;width:80px;height:80px;max-width:100%;aspect-ratio:1;border-radius:50%;margin:8px auto;display:grid;place-content:center;background:conic-gradient(var(--ring-color) calc(var(--rate)*1%),#2c2635 0);position:relative}
+.tracker-donut{--rate:0%;--ring-color:#34d399;width:80px;height:80px;max-width:100%;aspect-ratio:1;border-radius:50%;margin:8px auto;display:grid;place-content:center;background:conic-gradient(var(--ring-color) var(--rate),#2c2635 0);position:relative}
 .tracker-donut:before{content:"";position:absolute;inset:6px;border-radius:50%;background:#100e18}
 .tracker-donut b,.tracker-donut small{z-index:1;position:relative}
 .tracker-donut b{font-size:18px}
