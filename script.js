@@ -32,7 +32,7 @@ function openPage(page){
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   $(page+"-page")?.classList.add("active");
   document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
-  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="leaderboards"?"Leaderboards":page==="late"?"Late Games":page==="winstreak"?"Winstreak 1v1":page==="scrims"?"Scrims":page==="kits"?"Kit Library":page==="compare"?"Kit Compare":page==="players"?"Players":page==="statistics"?"Statistics":page==="updates"?"Update Tree":page==="admin"?"Admin":page);
+  text("topTitle",page==="dashboard"?"Overview":page==="profile"?"My Profile":page==="tracker"?"Player Tracker":page==="playercompare"?"Compare Players":page==="leaderboards"?"Best Players":page==="late"?"Late Games":page==="winstreak"?"Winstreak 1v1":page==="scrims"?"Scrims":page==="kits"?"Kit Library":page==="compare"?"Kit Compare":page==="players"?"Players":page==="statistics"?"Statistics":page==="updates"?"Update Tree":page==="admin"?"Admin":page);
   window.scrollTo({top:0,behavior:"smooth"});
   if(page==="statistics")drawAnalytics();
   if(page==="tracker"){renderTracker();drawTrackerChart();}
