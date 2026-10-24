@@ -1,6 +1,13 @@
 {
   "entries": [
     {
+      "sha": "12f69dcd1c81e422880fd641647453a10c019c66",
+      "date": "2026-10-24T16:28:01+01:00",
+      "category": "Interface & Design",
+      "title": "Add CRIB player comparison and match verification UI",
+      "summary": "Add CRIB player comparison and match verification UI"
+    },
+    {
       "sha": "59aef9400a517f651b5563421f4ba03c038c100f",
       "date": "2026-10-24T16:26:32+01:00",
       "category": "Player Profiles",
