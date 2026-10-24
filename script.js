@@ -134,6 +134,27 @@ function renderCompare(){
   const card=k=>`<article class="compare-card"><img class="rank-img medium" src="${rankImg(Math.max(0,num(k.power)*60))}" alt=""><span class="pill">${esc(k.tier||"—")} · ${esc(k.class||"Other")}</span><h2>${esc(k.name)}</h2><div class="power">${num(k.power)}<span>/100 power</span></div><p>Scrim RP modifier <b>×${num(k.rpMultiplier).toFixed(3)}</b></p><p>${esc(k.description||"Mechanic not supplied")}</p><div class="muted-line">Compared with ${esc(k.name===a.name?b.name:a.name)}, equivalent performance earns approximately ${Math.abs(num(k.rpMultiplier-(k.name===a.name?b.rpMultiplier:a.rpMultiplier))*100).toFixed(1)} percentage points of RP difference.</div></article>`;
   box.innerHTML=card(a)+card(b);
 }
+
+function renderPlayerCompare(){
+  const box=$("playerComparisonResult");if(!box)return;
+  const a=players.find(p=>p.id===$("comparePlayerA")?.value),b=players.find(p=>p.id===$("comparePlayerB")?.value);
+  if(!a||!b){box.innerHTML='<div class="card muted-line">Create player profiles to compare players.</div>';return;}
+  const metrics=p=>{const games=num(p.wins)+num(p.losses);return {rp:num(p.rp),peak:num(p.peakRP),rating:num(p.cribRating),mmr:num(p.mmr),winRate:games?num(p.wins)/games*100:0,wins:num(p.wins),losses:num(p.losses),games,kills:num(p.kills),deaths:num(p.deaths),kd:num(p.deaths)?num(p.kills)/num(p.deaths):num(p.kills),beds:num(p.beds),streak:num(p.winstreak),bestStreak:num(p.bestStreak),lateElo:num(p.lateElo)}};
+  const A=metrics(a),B=metrics(b),direct={games:0,aWins:0,bWins:0};
+  matches.forEach(m=>{
+    const oppIds=[m.opponentId,...(m.opponentIds||[])].filter(Boolean);
+    const names=[m.opponent,...(m.opponents||[])].filter(Boolean).map(x=>String(x).toLowerCase());
+    const facesB=oppIds.includes(b.id)||names.includes(String(b.displayName).toLowerCase())||names.includes(String(b.username).toLowerCase());
+    const facesA=oppIds.includes(a.id)||names.includes(String(a.displayName).toLowerCase())||names.includes(String(a.username).toLowerCase());
+    if(m.playerId===a.id&&facesB){direct.games++;if(m.result==="Win")direct.aWins++;else direct.bWins++;}
+    if(m.playerId===b.id&&facesA){direct.games++;if(m.result==="Win")direct.bWins++;else direct.aWins++;}
+  });
+  const rows=[["Current RP","rp"],["Peak RP","peak"],["CRIB Rating","rating"],["Hidden MMR","mmr"],["Win Rate","winRate","percent"],["Wins","wins"],["Losses","losses"],["Games","games"],["Kills","kills"],["Deaths","deaths"],["K/D","kd","decimal"],["Beds broken","beds"],["Current winstreak","streak"],["Best winstreak","bestStreak"],["Late Game ELO","lateElo"]];
+  const card=(p,m)=>'<article class="card player-compare-card"><div class="player-compare-head"><div class="avatar xl">'+esc(initials(p.displayName))+'</div><div><span class="pill">'+esc(rankData(p.rp).label)+'</span><h3>'+esc(p.displayName)+'</h3><small class="muted-line">@'+esc(p.username)+'</small></div></div><div class="player-compare-metrics">'+rows.map(([label,key,fmt])=>'<div><span>'+label+'</span><b>'+(fmt==="percent"?m[key].toFixed(1)+"%":fmt==="decimal"?m[key].toFixed(2):m[key].toLocaleString())+'</b></div>').join("")+'</div></article>';
+  const same=a.id===b.id;
+  box.innerHTML=card(a,A)+card(b,B)+'<article class="card h2h-card"><div class="card-top"><div><h3>Head-to-head</h3><p>Direct recorded results between these two profiles</p></div><span class="pill subtle">'+(same?"Select two players":"Direct record")+'</span></div><div class="h2h-score"><div><b>'+direct.aWins+'</b><span>'+esc(a.displayName)+' wins</span></div><div class="h2h-divider">—</div><div><b>'+direct.bWins+'</b><span>'+esc(b.displayName)+' wins</span></div></div><p class="muted-line">'+(same?"Choose two different players to see a head-to-head record.":direct.games+" matching recorded game(s)"+(direct.games?" · Win rate for "+esc(a.displayName)+": "+(direct.aWins/direct.games*100).toFixed(1)+"%":" · No direct results found yet."))+'</p></article>';
+}
+
 function renderPlayers(){
   const tb=$("playersTableBody");if(!tb)return;
   const q=($("playerSearchInput")?.value||"").toLowerCase();
