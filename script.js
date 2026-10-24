@@ -100,6 +100,7 @@ function renderPlayer(){
   text("profileMMR",p.mmr);text("profilePerformance",p.performanceRating??p.cribRating??1000);text("profileLateELO",p.lateElo);text("profileFormRating",p.recentForm??p.winstreak);text("profileBedStreak",p.bedStreak??0);text("profileBestBedStreak",p.bestBedStreak??0);
   text("profileKills",p.kills);text("profileDeaths",p.deaths);text("profileKD",kd.toFixed(2));text("profileBeds",p.beds);text("profileWinstreak",p.winstreak);text("profileBestStreak",p.bestStreak);
   const h=[...(p.history||[])].reverse().slice(0,20),tb=$("rankHistoryTable");if(tb)tb.innerHTML=h.map(x=>{const r=rankData(x.rp);return `<tr><td>${esc(fmtDate(x.date))}</td><td>${esc(r.label)}</td><td>${num(x.rp)}</td><td class="${num(x.change)>=0?"rp-good":"rp-bad"}">${num(x.change)>=0?"+":""}${num(x.change)}</td><td>${esc(prettyKey(x.event||"Match"))}</td></tr>`}).join("")||'<tr><td colspan="5" class="muted-line">No ranked history yet.</td></tr>';
+  drawProfileRpChart();
 }
 function renderRecent(){
   const box=$("recentMatchesList");if(!box)return;
@@ -224,13 +225,19 @@ function renderStats(){
 }
 function drawCanvas(canvas,values){
   if(!canvas)return;const ctx=canvas.getContext("2d"),rect=canvas.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(300,rect.width),h=Math.max(180,rect.height);canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
-  ctx.strokeStyle="#211d2c";ctx.lineWidth=1;for(let i=1;i<5;i++){const y=i*h/5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+  ctx.strokeStyle="#243229";ctx.lineWidth=1;for(let i=1;i<5;i++){const y=i*h/5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
   if(values.length<2){ctx.fillStyle="#777187";ctx.font="12px system-ui";ctx.fillText("Record a few matches to see your trend.",15,h/2);return}
   const min=Math.min(...values),max=Math.max(...values),span=Math.max(1,max-min),pad=18;
   const pts=values.map((v,i)=>[pad+i*(w-pad*2)/(values.length-1),h-pad-(v-min)/span*(h-pad*2)]);
-  const grad=ctx.createLinearGradient(0,0,w,0);grad.addColorStop(0,"#8b5cf6");grad.addColorStop(1,"#ec4899");
+  const grad=ctx.createLinearGradient(0,0,w,0);grad.addColorStop(0,"#56c984");grad.addColorStop(1,"#b5f36b");
   ctx.strokeStyle=grad;ctx.lineWidth=3;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.stroke();
   ctx.fillStyle="#fff";pts.slice(-1).forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],4,0,Math.PI*2);ctx.fill()});
+}
+function drawProfileRpChart(){
+  const canvas=$("profileRpChart");if(!canvas)return;
+  const values=[...(active?.history||[])].filter(x=>Number.isFinite(Number(x.rp))).slice(-30).map(x=>num(x.rp));
+  if(!values.length&&active)values.push(num(active.rp));
+  drawCanvas(canvas,values);
 }
 function drawChart(){
   const ms=currentMatches().slice().reverse(),range=document.querySelector("[data-chart-range].active")?.dataset.chartRange||"7",arr=range==="all"?ms:ms.slice(-Number(range));
