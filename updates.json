@@ -1,6 +1,13 @@
 {
   "entries": [
     {
+      "sha": "cd613d7d4b8028334ad532bab6cdf29fb5bcb0ec",
+      "date": "2026-10-24T16:30:39+01:00",
+      "category": "Match Tracking",
+      "title": "Ensure only admin-reviewed matches are marked verified",
+      "summary": "Ensure only admin-reviewed matches are marked verified"
+    },
+    {
       "sha": "958b341e9af8548bb656b4c68435e41a6bac085c",
       "date": "2026-10-24T16:30:22+01:00",
       "category": "Player Profiles",
@@ -510,20 +517,6 @@
       "category": "Ranked Ratings",
       "title": "Add amethyst rank emblem",
       "summary": "Add amethyst rank emblem"
-    },
-    {
-      "sha": "27bdfcda0634c348d41fc7cf4234bd923c3c97c7",
-      "date": "2026-10-06T21:42:50+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add quartz rank emblem",
-      "summary": "Add quartz rank emblem"
-    },
-    {
-      "sha": "587ef3368099c05bffaefadbfe7827469e4d951c",
-      "date": "2026-10-06T21:42:48+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add copper rank emblem",
-      "summary": "Add copper rank emblem"
     }
   ]
 }
