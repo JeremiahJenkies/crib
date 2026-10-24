@@ -304,7 +304,7 @@ window.saveKit=async i=>{
   if(!adminToken)return toast("Unlock admin first.");const k=kits[i];try{await adminCall("/admin/kits",{name:k.name,powerScore:num($("power-"+i).value),metaAdjustment:num($("meta-"+i).value)});await refresh();toast(k.name+" balanced")}catch(e){toast(e.message)}
 };
 async function unlockAdmin(){
-  adminToken=$("adminTokenInput").value;try{await api("/config");await adminCall("/admin/config",{});text("adminStatus","Unlocked · token accepted");toast("Admin unlocked")}catch(e){text("adminStatus","Locked · "+e.message)}
+  adminToken=$("adminTokenInput").value;try{await api("/config");await adminCall("/admin/config",{});text("adminStatus","Unlocked · token accepted");renderMatches();toast("Admin unlocked")}catch(e){text("adminStatus","Locked · "+e.message)}
 }
 async function saveConfig(){
   if(!adminToken)return toast("Unlock admin first.");const b={};["baseWin","baseLoss","noKitMultiplier","minKitMultiplier","maxKitMultiplier","streakCap"].forEach(k=>b[k]=num($("cfg-"+k).value));try{await adminCall("/admin/config",b);await refresh();toast("Ranked configuration saved")}catch(e){toast(e.message)}
