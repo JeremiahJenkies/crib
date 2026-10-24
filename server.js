@@ -136,6 +136,8 @@ function applySavedState(saved){
  Object.assign(state,saved);
  state.config={...state.config,...(saved.config||{})};
  state.players=(state.players||[]).map(normalizePlayer);
+ // Previous client-submitted verification flags were not authoritative. Only retain records with an admin verification timestamp.
+ state.matches=(state.matches||[]).map(m=>m.verified===true&&!m.verifiedAt?{...m,verified:false,verifiedAt:null}:m);
  state.kits=(state.kits?.length?state.kits:DEFAULT_KITS).map(normalizeKit);
 }
 async function loadState(){
@@ -214,7 +216,7 @@ const server=http.createServer(async(req,res)=>{
    const calc=calculateRP(b,p);
    const matchId=id("scrim"),createdAt=new Date().toISOString();
    const resolvedOpponents=opponentNames.map(name=>findPlayer(name)?.displayName||name);
-   const match={id:matchId,type:"SCRIM",mode,format:String(b.format||"4v4"),teamSize:Number(b.teamSize||4),playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents.length?resolvedOpponents:(op?[op.displayName]:[]),kit:calc.kit,kitRule:String(b.kitRule||"Allowed"),map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),result:calc.win?"Win":"Loss",kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),verified:Boolean(b.verified),notes:String(b.notes||""),rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt};
+   const match={id:matchId,type:"SCRIM",mode,format:String(b.format||"4v4"),teamSize:Number(b.teamSize||4),playerId:p.id,opponentId:op?.id||null,opponent:op?.displayName||null,opponents:resolvedOpponents.length?resolvedOpponents:(op?[op.displayName]:[]),kit:calc.kit,kitRule:String(b.kitRule||"Allowed"),map:String(b.map||""),role:String(b.role||"Flex"),scoreFor:Number(b.scoreFor||0),scoreAgainst:Number(b.scoreAgainst||0),result:calc.win?"Win":"Loss",kills:Number(b.kills||0),deaths:Number(b.deaths||0),bedsDestroyed:mode==="NO_BED_SCRIM"?0:Number(b.bedsDestroyed||0),placement:Number(b.placement||0),duration:Number(b.duration||0),verified:false,verifiedAt:null,notes:String(b.notes||""),rp:calc.final,lossRP:calc.win?0:Math.abs(calc.final),performanceScore:calc.combatPerformance+calc.objectivePerformance+calc.scoreDifferential,kitPowerAtMatch:calc.kitPowerAtMatch,kitMultiplierAtMatch:calc.kitMultiplierAtMatch,autoCreatedOpponentProfiles:autoCreatedPlayers.map(x=>x.id),createdAt};
    const playerMmrBefore=Number(p.mmr||1000);
    const playerScrimMmrBefore=Number(p.scrimMmr||1000);
    const averageOpponentMmr=opponentProfiles.length?opponentProfiles.reduce((sum,x)=>sum+Number(x.mmr??1000),0)/opponentProfiles.length:Number(b.opponentRP||1000);
