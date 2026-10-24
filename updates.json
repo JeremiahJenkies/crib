@@ -1,6 +1,13 @@
 {
   "entries": [
     {
+      "sha": "cbdf2862bfb077e68f6679fffb68aa4f42a7da2b",
+      "date": "2026-10-24T16:30:59+01:00",
+      "category": "Match Tracking",
+      "title": "Document admin-reviewed match verification",
+      "summary": "Document admin-reviewed match verification"
+    },
+    {
       "sha": "cd613d7d4b8028334ad532bab6cdf29fb5bcb0ec",
       "date": "2026-10-24T16:30:39+01:00",
       "category": "Match Tracking",
@@ -503,20 +510,6 @@
       "category": "Ranked Ratings",
       "title": "Add topaz rank emblem",
       "summary": "Add topaz rank emblem"
-    },
-    {
-      "sha": "37f381554a7050c1ad6e5e58af4f891ff7f2085c",
-      "date": "2026-10-06T21:42:55+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add jade rank emblem",
-      "summary": "Add jade rank emblem"
-    },
-    {
-      "sha": "13dd234ec48e7d70f94f5f5ac5ac1bdf3811e507",
-      "date": "2026-10-06T21:42:52+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add amethyst rank emblem",
-      "summary": "Add amethyst rank emblem"
     }
   ]
 }
