@@ -1,6 +1,27 @@
 {
   "entries": [
     {
+      "sha": "59aef9400a517f651b5563421f4ba03c038c100f",
+      "date": "2026-10-24T16:26:32+01:00",
+      "category": "Player Profiles",
+      "title": "Fix global search to open player directory",
+      "summary": "Fix global search to open player directory"
+    },
+    {
+      "sha": "c2b8c8f7e0ad03d94b2a5aa13f9f35064b78c90f",
+      "date": "2026-10-24T16:26:26+01:00",
+      "category": "Interface & Design",
+      "title": "Rebrand CRIB dashboard as BedWars tracker",
+      "summary": "Rebrand CRIB dashboard as BedWars tracker"
+    },
+    {
+      "sha": "b49ff4f30e3f6d77f52dcbd666d613460be41baf",
+      "date": "2026-10-24T16:26:24+01:00",
+      "category": "Interface & Design",
+      "title": "Refresh CRIB tracker dashboard styling",
+      "summary": "Refresh CRIB tracker dashboard styling"
+    },
+    {
       "sha": "968b3657a459bd89b8f887a45426deda7e9b8af2",
       "date": "2026-10-09T23:32:50+01:00",
       "category": "Interface & Design",
