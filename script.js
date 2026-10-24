@@ -279,13 +279,13 @@ $("activePlayerSelect")?.addEventListener("change",e=>selectPlayer(e.target.valu
 $("quickAddLGBtn")?.addEventListener("click",()=>show("lateGameModal"));$("openLateGameBtn")?.addEventListener("click",()=>show("lateGameModal"));
 $("openWinstreakBtn")?.addEventListener("click",()=>{show("scrimModal");$("scrimModeSelect").value="WINSTREAK_1V1";updateModeFields()});
 $("createPlayerSubmit")?.addEventListener("click",createPlayer);$("saveScrimBtn")?.addEventListener("click",saveScrim);$("saveLateGameBtn")?.addEventListener("click",saveLG);$("adminLoginBtn")?.addEventListener("click",unlockAdmin);$("saveServerConfigBtn")?.addEventListener("click",saveConfig);
-$("openProfileBtn")?.addEventListener("click",()=>openPage("profile"));$("recentMatchesBtn")?.addEventListener("click",()=>openPage("scrims"));$("leaderboardOpenBtn")?.addEventListener("click",()=>openPage("leaderboards"));$("globalSearchBtn")?.addEventListener("click",()=>{openPage("scrims");$("scrimSearch")?.focus()});
+$("openProfileBtn")?.addEventListener("click",()=>openPage("profile"));$("recentMatchesBtn")?.addEventListener("click",()=>openPage("scrims"));$("leaderboardOpenBtn")?.addEventListener("click",()=>openPage("leaderboards"));$("globalSearchBtn")?.addEventListener("click",()=>{openPage("players");$("playerSearchInput")?.focus()});
 $("scrimModeSelect")?.addEventListener("change",updateModeFields);
 ["scrimSearch","scrimFilterMode","scrimFilterKit","scrimFilterResult"].forEach(id=>$(id)?.addEventListener("input",renderMatches));
 ["kitSearch","kitClassFilter","kitTierFilter","kitStatusFilter","kitSort"].forEach(id=>$(id)?.addEventListener("input",renderKits));
 ["compareKitA","compareKitB"].forEach(id=>$(id)?.addEventListener("change",renderCompare));
 $("playerSearchInput")?.addEventListener("input",renderPlayers);$("leaderboardFilter")?.addEventListener("change",renderLeaderboard);
 document.querySelectorAll("[data-chart-range]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-chart-range]").forEach(x=>x.classList.remove("active"));b.classList.add("active");drawChart()}));
-document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-backdrop.open").forEach(x=>x.classList.remove("open"));if(e.ctrlKey&&e.key.toLowerCase()==="k"){e.preventDefault();openPage("scrims");$("scrimSearch")?.focus()}if(e.ctrlKey&&e.key.toLowerCase()==="n"){e.preventDefault();show("scrimModal")}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-backdrop.open").forEach(x=>x.classList.remove("open"));if(e.ctrlKey&&e.key.toLowerCase()==="k"){e.preventDefault();openPage("players");$("playerSearchInput")?.focus()}if(e.ctrlKey&&e.key.toLowerCase()==="n"){e.preventDefault();show("scrimModal")}});
 window.addEventListener("resize",()=>{drawChart();drawAnalytics()});
 refresh().catch(e=>{text("serverStatus","OFFLINE");$("statusDot")?.style.setProperty("background","var(--bad)");toast("CRIB server offline — run npm start");console.error(e)});
