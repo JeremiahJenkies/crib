@@ -1,6 +1,27 @@
 {
   "entries": [
     {
+      "sha": "bb1546ed5a30d31f4c41c603fc7a9bd6a0c06813",
+      "date": "2026-10-24T17:22:26+01:00",
+      "category": "Ranked Ratings",
+      "title": "Add custom CRIB rank emblem artwork",
+      "summary": "Add custom CRIB rank emblem artwork"
+    },
+    {
+      "sha": "79c1ef2d0db0d98e656d134d763b2ab0d8a037c9",
+      "date": "2026-10-24T17:22:24+01:00",
+      "category": "Other",
+      "title": "Add custom CRIB favicon",
+      "summary": "Add custom CRIB favicon"
+    },
+    {
+      "sha": "5c928df8206fe8498879512eff52dbc4ece4fd81",
+      "date": "2026-10-24T17:22:21+01:00",
+      "category": "Interface & Design",
+      "title": "Refresh CRIB tracker UI with polished competitive dark theme",
+      "summary": "Refresh CRIB tracker UI with polished competitive dark theme"
+    },
+    {
       "sha": "c0948d24d12c79202448f91195681c520d68450c",
       "date": "2026-10-24T17:22:07+01:00",
       "category": "Platform & Data",
@@ -475,34 +496,6 @@
       "category": "Ranked Ratings",
       "title": "Add garnet rank emblem",
       "summary": "Add garnet rank emblem"
-    },
-    {
-      "sha": "03617698317c49223ab313f62a4c997cda914d68",
-      "date": "2026-10-06T21:43:09+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add ruby rank emblem",
-      "summary": "Add ruby rank emblem"
-    },
-    {
-      "sha": "f2ba9b72fde22fc5d6cf6b4c6d17c0896bdf7db2",
-      "date": "2026-10-06T21:43:06+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add emerald rank emblem",
-      "summary": "Add emerald rank emblem"
-    },
-    {
-      "sha": "5db84ed19c0015de706ed124e1cbabcd3d779d4b",
-      "date": "2026-10-06T21:43:04+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add sapphire rank emblem",
-      "summary": "Add sapphire rank emblem"
-    },
-    {
-      "sha": "0021082f1dc0fbf88875e90c45cd85d229e35a7f",
-      "date": "2026-10-06T21:43:02+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add pearl rank emblem",
-      "summary": "Add pearl rank emblem"
     }
   ]
 }
