@@ -107,12 +107,19 @@ function renderRecent(){
   box.innerHTML=arr.map(m=>`<div class="match-row"><div class="match-main"><span class="mode-dot ${m.result==="Loss"?"loss":m.type==="LG"?"lg":""}"></span><div><b>${esc(modeName(m.mode||m.type))}</b><small>${esc(m.kit||m.opponent||"Match")} · ${esc(fmtDate(m.createdAt))}</small></div></div><b class="${m.rp>=0?"rp-good":"rp-bad"}">${m.rp>=0?"+":""}${num(m.rp)} RP</b></div>`).join("")||'<div class="match-row"><span class="muted-line">No matches recorded yet. Start your first competitive record.</span></div>';
   const lb=$("leaderboardPreview");if(lb){lb.innerHTML=[...players].sort((a,b)=>(b.cribRating||0)-(a.cribRating||0)).slice(0,6).map((p,i)=>`<div class="leader-row"><span><b>#${i+1} · ${esc(p.displayName)}</b><small>${esc(rankData(p.rp).label)} · ${num(p.rp)} RP</small></span><strong>${num(p.cribRating)}</strong></div>`).join("")||'<div class="leader-row">No players yet.</div>'}
 }
+
 function renderMatches(){
   const tb=$("matchesTableBody");if(!tb)return;
-  let arr=currentMatches(),q=($("scrimSearch")?.value||"").toLowerCase(),mode=$("scrimFilterMode")?.value||"all",kitF=$("scrimFilterKit")?.value||"all",res=$("scrimFilterResult")?.value||"all";
-  arr=arr.filter(m=>(!q||JSON.stringify(m).toLowerCase().includes(q))&&(mode==="all"||m.mode===mode)&&(kitF==="all"||m.kit===kitF)&&(res==="all"||m.result===res));
-  tb.innerHTML=arr.map(m=>`<tr><td><b>#${esc(String(m.id).slice(-7))}</b><small class="muted-line">${esc(fmtDate(m.createdAt))}</small></td><td>${esc(modeName(m.mode||m.type))}</td><td>${esc(m.kit||"—")}</td><td class="${m.result==="Win"?"rp-good":"rp-bad"}"><b>${esc(m.result||"—")}</b></td><td>${num(m.scoreFor)} — ${num(m.scoreAgainst)}</td><td>${num(m.performanceScore??m.perf??0)}</td><td class="${m.rp>=0?"rp-good":"rp-bad"}">${m.rp>=0?"+":""}${num(m.rp)}</td><td>${esc(fmtDate(m.createdAt))}</td></tr>`).join("")||'<tr><td colspan="8" class="muted-line">No matches match those filters.</td></tr>';
+  let arr=currentMatches(),q=($("scrimSearch")?.value||"").toLowerCase(),mode=$("scrimFilterMode")?.value||"all",kitF=$("scrimFilterKit")?.value||"all",res=$("scrimFilterResult")?.value||"all",verification=$("scrimFilterVerification")?.value||"all";
+  arr=arr.filter(m=>(!q||JSON.stringify(m).toLowerCase().includes(q))&&(mode==="all"||m.mode===mode)&&(kitF==="all"||m.kit===kitF)&&(res==="all"||m.result===res)&&(verification==="all"||(verification==="verified"&&m.verified===true)||(verification==="unverified"&&m.verified!==true)));
+  tb.innerHTML=arr.map(m=>{
+    const opponents=[...(m.opponents||[])];if(m.opponent&&!opponents.includes(m.opponent))opponents.unshift(m.opponent);
+    const verified=m.verified===true,opponentText=opponents.length?opponents.join(", "):"Not recorded";
+    const verifyAction=!verified&&adminToken?'<button class="verify-match-btn" onclick="verifyMatch(\''+esc(m.id)+'\')">Verify</button>':"";
+    return '<tr><td><b>#'+esc(String(m.id).slice(-7))+'</b><small class="muted-line">'+esc(fmtDate(m.createdAt))+'</small></td><td>'+esc(modeName(m.mode||m.type))+'</td><td>'+esc(opponentText)+'</td><td>'+esc(m.kit||"—")+'</td><td class="'+(m.result==="Win"?"rp-good":"rp-bad")+'"><b>'+esc(m.result||"—")+'</b></td><td>'+num(m.scoreFor)+' — '+num(m.scoreAgainst)+'</td><td class="'+(m.rp>=0?"rp-good":"rp-bad")+'">'+(m.rp>=0?"+":"")+num(m.rp)+'</td><td><span class="verification-badge '+(verified?"verified":"unverified")+'">'+(verified?"✓ Verified":"Unverified")+'</span>'+verifyAction+'</td><td>'+esc(fmtDate(m.createdAt))+'</td></tr>';
+  }).join("")||'<tr><td colspan="9" class="muted-line">No matches match those filters.</td></tr>';
 }
+
 function populateKits(){
   const opts=kits.map(k=>`<option value="${esc(k.name)}">${esc(k.name)}</option>`).join("");
   ["scrimKitSelect","winstreakOpponentKitSelect","compareKitA","compareKitB"].forEach(id=>{const e=$(id);if(e)e.innerHTML=opts});
