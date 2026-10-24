@@ -224,7 +224,7 @@ function renderStats(){
   text("statWinRate",wr.toFixed(1)+"%");text("statKD",kd.toFixed(2));text("statAvgKills",g?(active.kills/g).toFixed(2):"0.00");text("statAvgBeds",g?(active.beds/g).toFixed(2):"0.00");text("statAvgPlacement",g?(ms.reduce((a,m)=>a+num(m.placement||0),0)/g).toFixed(1):"0.0");text("statRPChange",ms.reduce((a,m)=>a+num(m.rp),0));text("statWinstreak",active.winstreak);text("statGames",g);text("statMMR",active.mmr);text("statPerformance",active.performanceRating||active.cribRating);text("statLateELO",active.lateElo);text("statFormRating",active.recentForm??active.winstreak);
   const group=(key)=>{const o={};ms.forEach(m=>{const k=m[key]||"Unknown";o[k]??={g:0,w:0,rp:0};o[k].g++;o[k].w+=m.result==="Win"?1:0;o[k].rp+=num(m.rp)});return o};
   const renderGroup=(id,o)=>{const e=$(id);if(e)e.innerHTML=Object.entries(o).sort((a,b)=>b[1].g-a[1].g).slice(0,8).map(([k,v])=>`<div class="leader-row"><span><b>${esc(k)}</b><small>${v.w}/${v.g} wins</small></span><strong>${v.rp>=0?"+":""}${v.rp}</strong></div>`).join("")||'<div class="leader-row">No data yet.</div>'};
-  renderGroup("kitStatsList",group("kit"));renderGroup("mapStatsList",group("map"));renderGroup("roleStatsList",group("role"));
+  renderGroup("kitStatsList",group("kit"));renderGroup("mapStatsList",group("map"));renderGroup("roleStatsList",group("role"));renderGroup("modeStatsList",group("mode"));
   const opp={};ms.forEach(m=>(m.opponent||m.opponents?.join(", ")).split(",").map(x=>x.trim()).filter(Boolean).forEach(o=>{opp[o]??={g:0,w:0};opp[o].g++;opp[o].w+=m.result==="Win"?1:0}));renderGroup("opponentStatsList",Object.fromEntries(Object.entries(opp).map(([k,v])=>[k,{...v,rp:0}])));
 }
 function drawCanvas(canvas,values){
