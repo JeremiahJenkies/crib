@@ -91,13 +91,14 @@
         </div>
         <div class="section-head"><div><h3>Combat & Objective</h3><p>Lifetime match output</p></div></div>
         <div class="metric-card-grid"><div class="metric"><span>Kills</span><b id="profileKills">0</b></div><div class="metric"><span>Deaths</span><b id="profileDeaths">0</b></div><div class="metric"><span>K/D</span><b id="profileKD">0.00</b></div><div class="metric"><span>Beds</span><b id="profileBeds">0</b></div><div class="metric"><span>Winstreak</span><b id="profileWinstreak">0</b></div><div class="metric"><span>Best Streak</span><b id="profileBestStreak">0</b></div></div>
+        <article class="card"><div class="card-top"><div><h3>RP History</h3><p>Rating progression over time</p></div><span class="pill subtle">CRIB RP</span></div><div class="chart-wrap profile-rp-chart"><canvas id="profileRpChart"></canvas></div></article>
         <article class="card table-card"><div class="card-top"><div><h3>Rank History</h3><p>Every saved RP change</p></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Rank</th><th>RP</th><th>Change</th><th>Event</th></tr></thead><tbody id="rankHistoryTable"></tbody></table></div></article>
       </section>
 
       <section class="page" id="scrims-page">
         <div class="section-head"><div><h1>Scrim Vault</h1><p>Server-calculated RP with kit-aware scoring.</p></div><button class="primary" id="addScrimBtn">+ Record Scrim</button></div>
-        <div class="card toolbar"><input id="scrimSearch" placeholder="Search players, kits, maps, notes…"><select id="scrimFilterMode"><option value="all">All formats</option><option value="STANDARD_SCRIM">Standard</option><option value="NO_BED_SCRIM">No-Bed</option><option value="WINSTREAK_1V1">Winstreak 1v1</option></select><select id="scrimFilterKit"><option value="all">All kits</option></select><select id="scrimFilterResult"><option value="all">All results</option><option>Win</option><option>Loss</option></select></div>
-        <article class="card table-card"><div class="table-wrap"><table><thead><tr><th>Match</th><th>Mode</th><th>Kit</th><th>Result</th><th>Score</th><th>Performance</th><th>RP</th><th>Date</th></tr></thead><tbody id="matchesTableBody"></tbody></table></div></article>
+        <div class="card toolbar"><input id="scrimSearch" placeholder="Search opponents, kits, maps, notes…"><select id="scrimFilterMode"><option value="all">All formats</option><option value="STANDARD_SCRIM">Standard</option><option value="NO_BED_SCRIM">No-Bed</option><option value="WINSTREAK_1V1">Winstreak 1v1</option></select><select id="scrimFilterKit"><option value="all">All kits</option></select><select id="scrimFilterResult"><option value="all">All results</option><option>Win</option><option>Loss</option></select><select id="scrimFilterVerification"><option value="all">Verified + unverified</option><option value="verified">Verified only</option><option value="unverified">Unverified only</option></select></div>
+        <article class="card table-card"><div class="table-wrap"><table><thead><tr><th>Match</th><th>Mode</th><th>Opponent(s)</th><th>Kit</th><th>Result</th><th>Score</th><th>RP</th><th>Verification</th><th>Date</th></tr></thead><tbody id="matchesTableBody"></tbody></table></div></article>
       </section>
 
       <section class="page" id="winstreak-page">
@@ -130,6 +131,9 @@
         <div class="section-head"><div><h1>Kit Compare</h1><p>See the trade-off between kit power and Scrim RP.</p></div></div>
         <div class="card compare-controls"><div><label>Kit A<select id="compareKitA"></select></label></div><div class="vs">VS</div><div><label>Kit B<select id="compareKitB"></select></label></div></div>
         <div id="kitComparisonResult" class="compare-grid"></div>
+        <div class="section-head compare-section-head"><div><h2>Player vs Player</h2><p>Compare ratings, ranked performance, combat stats and direct match records.</p></div></div>
+        <div class="card compare-controls player-compare-controls"><div><label>Player A<select id="comparePlayerA"></select></label></div><div class="vs">VS</div><div><label>Player B<select id="comparePlayerB"></select></label></div></div>
+        <div id="playerComparisonResult" class="player-comparison-grid"></div>
       </section>
 
       <section class="page" id="players-page">
