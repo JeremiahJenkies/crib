@@ -22,7 +22,7 @@ Do not open index.html directly with file:// because the API is served by the No
 
 ## Admin
 
-Set the environment variable `CRIB_ADMIN_TOKEN` before starting the server. Never commit a real admin token to GitHub.
+Set the environment variable `CRIB_ADMIN_TOKEN` before starting the server. Admin configuration and match verification remain locked if it is not set. Only an administrator using this token can mark a match as verified; submitted match data cannot verify itself. Never commit a real admin token to GitHub.
 
 ## Current server features
 
