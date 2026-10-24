@@ -48,7 +48,7 @@ async function refresh(){
   renderAll();populateKits();drawChart();drawAnalytics();loadUpdateTree().catch(()=>{text("updateCount","History unavailable");text("updateTree","Could not load updates.json.")});
   text("serverStatus","ONLINE");$("statusDot")?.style.setProperty("background","var(--good)");
 }
-function renderAll(){renderPlayerSwitch();renderPlayer();renderRecent();renderMatches();renderPlayers();renderKits();renderCompare();renderLeaderboard();renderLate();renderWinstreak();renderStats();renderAdmin();renderUpdateTree();updateModeFields()}
+function renderAll(){renderPlayerSwitch();renderPlayer();renderRecent();renderMatches();renderPlayers();renderKits();renderCompare();renderPlayerCompare();renderLeaderboard();renderLate();renderWinstreak();renderStats();renderAdmin();renderUpdateTree();updateModeFields()}
 async function loadUpdateTree(){
  const response=await fetch("updates.json",{cache:"no-store"});
  if(!response.ok)throw new Error("Update history request failed");
@@ -77,9 +77,9 @@ function renderUpdateTree(){
  }).join("")||'<div class="muted-line">No updates have been recorded yet.</div>';
 }
 function renderPlayerSwitch(){
-  const s=$("activePlayerSelect");if(!s)return;
-  s.innerHTML=players.map(p=>`<option value="${esc(p.id)}">${esc(p.displayName)} · ${num(p.rp)} RP</option>`).join("")||'<option value="">No players</option>';
-  if(active)s.value=active.id;
+  const s=$("activePlayerSelect");if(s){s.innerHTML=players.map(p=>`<option value="${esc(p.id)}">${esc(p.displayName)} · ${num(p.rp)} RP</option>`).join("")||'<option value="">No players</option>';if(active)s.value=active.id;}
+  const fill=(el,preferred)=>{if(!el)return;const old=el.value;el.innerHTML=players.map(p=>`<option value="${esc(p.id)}">${esc(p.displayName)} (@${esc(p.username)})</option>`).join("")||'<option value="">No players</option>';if(players.some(p=>p.id===old))el.value=old;else if(players.some(p=>p.id===preferred))el.value=preferred;};
+  fill($("comparePlayerA"),active?.id);fill($("comparePlayerB"),players.find(p=>p.id!==active?.id)?.id||active?.id);
 }
 function renderPlayer(){
   if(!active){
@@ -227,7 +227,7 @@ async function saveScrim(){
   if(!active)return toast("Create a player first.");
   const mode=$("scrimModeSelect").value,op=$("winstreakOpponentSelect")?.value||null;
   const typedOpponents=$("scrimOpponents").value.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
-  const b={playerId:active.id,mode,format:mode==="WINSTREAK_1V1"?"1v1":($("scrimTeamSize")?.value||"4")+"v"+($("scrimTeamSize")?.value||"4"),teamSize:num($("scrimTeamSize")?.value||4),result:$("scrimResult").value,kit:$("scrimKitSelect").value,kitRule:$("scrimKitRule")?.value||"Allowed",map:$("scrimMap").value,scoreFor:num($("scrimScoreFor").value),scoreAgainst:num($("scrimScoreAgainst").value),opponents:typedOpponents,opponentId:op,opponentRP:num($("scrimOpponentRP").value),role:$("scrimRole").value,kills:num($("scrimKills").value),deaths:num($("scrimDeaths").value),bedsDestroyed:num($("scrimBedsDestroyed").value),placement:num($("scrimPlacement").value),duration:num($("scrimDuration").value),verified:$("scrimVerified").value==="1",notes:$("scrimNotes").value};
+  const b={playerId:active.id,verified:false,mode,format:mode==="WINSTREAK_1V1"?"1v1":($("scrimTeamSize")?.value||"4")+"v"+($("scrimTeamSize")?.value||"4"),teamSize:num($("scrimTeamSize")?.value||4),result:$("scrimResult").value,kit:$("scrimKitSelect").value,kitRule:$("scrimKitRule")?.value||"Allowed",map:$("scrimMap").value,scoreFor:num($("scrimScoreFor").value),scoreAgainst:num($("scrimScoreAgainst").value),opponents:typedOpponents,opponentId:op,opponentRP:num($("scrimOpponentRP").value),role:$("scrimRole").value,kills:num($("scrimKills").value),deaths:num($("scrimDeaths").value),bedsDestroyed:num($("scrimBedsDestroyed").value),placement:num($("scrimPlacement").value),duration:num($("scrimDuration").value),verified:$("scrimVerified").value==="1",notes:$("scrimNotes").value};
   try{
     const d=await api("/matches/scrim",{method:"POST",body:JSON.stringify(b)});
     show("scrimModal",false);await refresh();openResult(d);
@@ -252,8 +252,9 @@ function openResult(d){
       : "";
   }
 }
-async function selectPlayer(id){active=players.find(p=>p.id===id)||active;saveActive();renderAll();openPage("dashboard")}
+async function selectPlayer(id,page="dashboard"){active=players.find(p=>p.id===id)||active;saveActive();renderAll();openPage(page)}
 window.selectPlayer=selectPlayer;
+window.verifyMatch=async id=>{if(!adminToken)return toast("Unlock admin first to verify matches.");try{await adminCall("/admin/matches/"+encodeURIComponent(id)+"/verification",{verified:true});await refresh();toast("Match verified.");}catch(e){toast(e.message)}};
 async function adminCall(path,body){return api(path,{method:"PUT",headers:{"x-admin-token":adminToken},body:JSON.stringify(body)})}
 function renderAdmin(){
   const f=$("serverConfigFields");if(f)f.innerHTML=["baseWin","baseLoss","noKitMultiplier","minKitMultiplier","maxKitMultiplier","streakCap"].map(k=>`<div class="config-item"><label>${prettyKey(k)}<input id="cfg-${k}" type="number" step="0.01" value="${esc(config[k]??0)}"></label></div>`).join("");
@@ -281,11 +282,11 @@ $("openWinstreakBtn")?.addEventListener("click",()=>{show("scrimModal");$("scrim
 $("createPlayerSubmit")?.addEventListener("click",createPlayer);$("saveScrimBtn")?.addEventListener("click",saveScrim);$("saveLateGameBtn")?.addEventListener("click",saveLG);$("adminLoginBtn")?.addEventListener("click",unlockAdmin);$("saveServerConfigBtn")?.addEventListener("click",saveConfig);
 $("openProfileBtn")?.addEventListener("click",()=>openPage("profile"));$("recentMatchesBtn")?.addEventListener("click",()=>openPage("scrims"));$("leaderboardOpenBtn")?.addEventListener("click",()=>openPage("leaderboards"));$("globalSearchBtn")?.addEventListener("click",()=>{openPage("players");$("playerSearchInput")?.focus()});
 $("scrimModeSelect")?.addEventListener("change",updateModeFields);
-["scrimSearch","scrimFilterMode","scrimFilterKit","scrimFilterResult"].forEach(id=>$(id)?.addEventListener("input",renderMatches));
+["scrimSearch","scrimFilterMode","scrimFilterKit","scrimFilterResult","scrimFilterVerification"].forEach(id=>$(id)?.addEventListener("input",renderMatches));
 ["kitSearch","kitClassFilter","kitTierFilter","kitStatusFilter","kitSort"].forEach(id=>$(id)?.addEventListener("input",renderKits));
-["compareKitA","compareKitB"].forEach(id=>$(id)?.addEventListener("change",renderCompare));
+["compareKitA","compareKitB"].forEach(id=>$(id)?.addEventListener("change",renderCompare));\n["comparePlayerA","comparePlayerB"].forEach(id=>$(id)?.addEventListener("change",renderPlayerCompare));
 $("playerSearchInput")?.addEventListener("input",renderPlayers);$("leaderboardFilter")?.addEventListener("change",renderLeaderboard);
 document.querySelectorAll("[data-chart-range]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-chart-range]").forEach(x=>x.classList.remove("active"));b.classList.add("active");drawChart()}));
 document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-backdrop.open").forEach(x=>x.classList.remove("open"));if(e.ctrlKey&&e.key.toLowerCase()==="k"){e.preventDefault();openPage("players");$("playerSearchInput")?.focus()}if(e.ctrlKey&&e.key.toLowerCase()==="n"){e.preventDefault();show("scrimModal")}});
-window.addEventListener("resize",()=>{drawChart();drawAnalytics()});
+window.addEventListener("resize",()=>{drawChart();drawAnalytics();drawProfileRpChart()});
 refresh().catch(e=>{text("serverStatus","OFFLINE");$("statusDot")?.style.setProperty("background","var(--bad)");toast("CRIB server offline — run npm start");console.error(e)});
