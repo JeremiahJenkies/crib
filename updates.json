@@ -1,6 +1,20 @@
 {
   "entries": [
     {
+      "sha": "958b341e9af8548bb656b4c68435e41a6bac085c",
+      "date": "2026-10-24T16:30:22+01:00",
+      "category": "Player Profiles",
+      "title": "Calculate player performance by game mode",
+      "summary": "Calculate player performance by game mode"
+    },
+    {
+      "sha": "8c77cdd77819094c163206fc01c978b1007be778",
+      "date": "2026-10-24T16:30:19+01:00",
+      "category": "Other",
+      "title": "Add performance breakdown by game mode",
+      "summary": "Add performance breakdown by game mode"
+    },
+    {
       "sha": "9662e13dc124a509e9f31dd52c16f9fbe7b367a5",
       "date": "2026-10-24T16:29:57+01:00",
       "category": "Match Tracking",
@@ -510,27 +524,6 @@
       "category": "Ranked Ratings",
       "title": "Add copper rank emblem",
       "summary": "Add copper rank emblem"
-    },
-    {
-      "sha": "76a100f1ed7407c2e83c597f37f66600b7d32155",
-      "date": "2026-10-06T21:42:46+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add iron rank emblem",
-      "summary": "Add iron rank emblem"
-    },
-    {
-      "sha": "1ae634ad01eb120aee89c0fca7df90820dfb11b2",
-      "date": "2026-10-06T21:42:44+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add coal rank emblem",
-      "summary": "Add coal rank emblem"
-    },
-    {
-      "sha": "4f1b4ec4b4f1461c06e80dcb5d14483dd56ecc8c",
-      "date": "2026-10-06T20:38:29+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add configurable mode-aware kit RP engine",
-      "summary": "Add configurable mode-aware kit RP engine"
     }
   ]
 }
