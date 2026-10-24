@@ -253,6 +253,14 @@ const server=http.createServer(async(req,res)=>{
 
   }
   if(u.pathname==="/api/matches"&&req.method==="GET"){const pid=u.searchParams.get("playerId");return json(res,200,{matches:state.matches.filter(m=>!pid||m.playerId===pid).slice().reverse()})}
+  const verifyMatchPath=u.pathname.match(/^\/api\/admin\/matches\/([^/]+)\/verification$/);
+  if(verifyMatchPath&&req.method==="PUT"){
+   if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
+   const matchId=decodeURIComponent(verifyMatchPath[1]),match=state.matches.find(m=>m.id===matchId);
+   if(!match)return json(res,404,{error:"Match not found."});
+   const b=await body(req);match.verified=Boolean(b.verified);match.verifiedAt=match.verified?new Date().toISOString():null;
+   await saveState();return json(res,200,{match});
+  }
   if(u.pathname==="/api/admin/config"&&req.method==="PUT"){
    if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
    Object.assign(state.config,await body(req));await saveState();return json(res,200,{config:state.config});
