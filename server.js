@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import { URL } from "node:url";
 
 const PORT=process.env.PORT||3000;
-const ADMIN_TOKEN=process.env.CRIB_ADMIN_TOKEN||"change-this-admin-token";
+const ADMIN_TOKEN=process.env.CRIB_ADMIN_TOKEN||"";
 const DATA_FILE=path.resolve(process.env.CRIB_DATA_FILE||path.join(process.env.CRIB_DATA_DIR||process.cwd(),"data.json"));
 const BACKUP_FILE=DATA_FILE+".bak";
 const RANKS=["Coal","Iron","Copper","Quartz","Amethyst","Jade","Topaz","Opal","Pearl","Sapphire","Emerald","Ruby","Garnet","Onyx","Obsidian","Diamond","Mythic","Astral","Celestial","Radiant"];
@@ -255,18 +255,18 @@ const server=http.createServer(async(req,res)=>{
   if(u.pathname==="/api/matches"&&req.method==="GET"){const pid=u.searchParams.get("playerId");return json(res,200,{matches:state.matches.filter(m=>!pid||m.playerId===pid).slice().reverse()})}
   const verifyMatchPath=u.pathname.match(/^\/api\/admin\/matches\/([^/]+)\/verification$/);
   if(verifyMatchPath&&req.method==="PUT"){
-   if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
+   if(!ADMIN_TOKEN||req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Set CRIB_ADMIN_TOKEN on the server and provide the admin token."});
    const matchId=decodeURIComponent(verifyMatchPath[1]),match=state.matches.find(m=>m.id===matchId);
    if(!match)return json(res,404,{error:"Match not found."});
    const b=await body(req);match.verified=Boolean(b.verified);match.verifiedAt=match.verified?new Date().toISOString():null;
    await saveState();return json(res,200,{match});
   }
   if(u.pathname==="/api/admin/config"&&req.method==="PUT"){
-   if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
+   if(!ADMIN_TOKEN||req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Set CRIB_ADMIN_TOKEN on the server and provide the admin token."});
    Object.assign(state.config,await body(req));await saveState();return json(res,200,{config:state.config});
   }
   if(u.pathname==="/api/admin/kits"&&req.method==="PUT"){
-   if(req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Admin token required."});
+   if(!ADMIN_TOKEN||req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Set CRIB_ADMIN_TOKEN on the server and provide the admin token."});
    const b=await body(req),k=kit(b.name);if(!k)return json(res,404,{error:"Kit not found."});Object.assign(k,b);k.power=Number(k.powerScore??k.power??0);k.rpMultiplier=kitMultiplierFor(k);await saveState();return json(res,200,{kit:k});
   }
   if(req.method==="GET"&&!u.pathname.startsWith("/api/")){
