@@ -166,20 +166,22 @@ function renderPlayerCompare(){
 function renderPlayers(){
   const tb=$("playersTableBody");if(!tb)return;
   const q=($("playerSearchInput")?.value||"").toLowerCase();
-  tb.innerHTML=players.filter(p=>JSON.stringify(p).toLowerCase().includes(q)).sort((a,b)=>num(b.cribRating)-num(a.cribRating)).map(p=>{const g=p.wins+p.losses,wr=g?p.wins/g*100:0;return `<tr><td><b>${esc(p.displayName)}</b><small class="muted-line">@${esc(p.username)}</small></td><td>${esc(rankData(p.rp).label)}</td><td>${num(p.rp)}</td><td>${num(p.cribRating)}</td><td>${p.wins} — ${p.losses} <small class="muted-line">${wr.toFixed(0)}% WR</small></td><td>${num(p.winstreak)}</td><td><button class="ghost" onclick="selectPlayer('${esc(p.id)}')">Open</button></td></tr>`}).join("")||'<tr><td colspan="7">No players found.</td></tr>';
+  tb.innerHTML=players.filter(p=>JSON.stringify(p).toLowerCase().includes(q)).sort((a,b)=>num(b.cribRating)-num(a.cribRating)).map(p=>{const g=p.wins+p.losses,wr=g?p.wins/g*100:0;return `<tr><td><b>${esc(p.displayName)}</b><small class="muted-line">@${esc(p.username)}</small></td><td>${esc(rankData(p.rp).label)}</td><td>${num(p.rp)}</td><td>${num(p.cribRating)}</td><td>${p.wins} — ${p.losses} <small class="muted-line">${wr.toFixed(0)}% WR</small></td><td>${num(p.winstreak)}</td><td><button class="ghost" onclick="selectPlayer('${esc(p.id)}','profile')">Open Profile</button></td></tr>`}).join("")||'<tr><td colspan="7">No players found.</td></tr>';
 }
 function renderLeaderboard(){
   const box=$("leaderboardTable");if(!box)return;
   const type=$("leaderboardFilter")?.value||"overall";
   const arr=[...players];
   // Build win/loss totals from the actual match vault so Late Games count too.
-  const records=new Map(players.map(p=>[p.id,{games:0,wins:0}]));
+  const records=new Map(players.map(p=>[p.id,{games:0,wins:0,scrims:0,lateGames:0}]));
   matches.forEach(m=>{
     const r=records.get(m.playerId);if(!r)return;
     r.games++;
     if(m.result==="Win")r.wins++;
+    if(m.type==="SCRIM"||["STANDARD_SCRIM","NO_BED_SCRIM","WINSTREAK_1V1"].includes(m.mode))r.scrims++;
+    if(m.type==="LG"||m.mode==="LG")r.lateGames++;
   });
-  const stats=p=>records.get(p.id)||{games:0,wins:0};
+  const stats=p=>records.get(p.id)||{games:0,wins:0,scrims:0,lateGames:0};
   const score=p=>{
     const s=stats(p),wr=s.games?s.wins/s.games:0;
     return type==="highest-rp"?p.rp:
@@ -191,6 +193,8 @@ function renderLeaderboard(){
       type==="most-beds"?p.beds:
       type==="most-kills"?p.kills:
       type==="most-wins"?s.wins:
+      type==="most-scrims"?s.scrims:
+      type==="most-late-games"?s.lateGames:
       type==="best-winrate"?wr:
       p.cribRating;
   };
