@@ -185,7 +185,7 @@
       <label>Opponent round score<input id="scrimScoreAgainst" type="number" min="0" value="0"></label>
       <label>Placement<input id="scrimPlacement" type="number" min="1" value="1"></label>
       <label>Duration (minutes)<input id="scrimDuration" type="number" min="0" value="8"></label>
-      <label>Verification<select id="scrimVerified"><option value="0">Unverified</option><option value="1">Verified</option></select></label>
+      <label>Verification status<select id="scrimVerified" disabled><option value="0">Unverified · admin review required</option></select><small class="field-hint">Only an administrator can verify submitted matches.</small></label>
       <label class="full">Notes<textarea id="scrimNotes" rows="3" placeholder="Optional: roster notes, bans, proof, etc."></textarea></label>
     </div>
   </div>
