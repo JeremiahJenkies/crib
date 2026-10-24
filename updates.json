@@ -1,6 +1,27 @@
 {
   "entries": [
     {
+      "sha": "3b2488b3b89374025e2248a04f6d91092ac5260e",
+      "date": "2026-10-24T17:23:23+01:00",
+      "category": "Interface & Design",
+      "title": "Redesign copper rank emblem",
+      "summary": "Redesign copper rank emblem"
+    },
+    {
+      "sha": "e5e986e88f26b1b3532b5a2e0d49ec18a273826f",
+      "date": "2026-10-24T17:23:20+01:00",
+      "category": "Interface & Design",
+      "title": "Redesign iron rank emblem",
+      "summary": "Redesign iron rank emblem"
+    },
+    {
+      "sha": "c0e79619dafa6735d340dc09725d1b4d9f9cb807",
+      "date": "2026-10-24T17:23:17+01:00",
+      "category": "Interface & Design",
+      "title": "Redesign coal rank emblem",
+      "summary": "Redesign coal rank emblem"
+    },
+    {
       "sha": "bb1546ed5a30d31f4c41c603fc7a9bd6a0c06813",
       "date": "2026-10-24T17:22:26+01:00",
       "category": "Ranked Ratings",
@@ -468,34 +489,6 @@
       "category": "Ranked Ratings",
       "title": "Add mythic rank emblem",
       "summary": "Add mythic rank emblem"
-    },
-    {
-      "sha": "435d2b547a363fcdfc96bd32a9fdeaef5cc0d2f7",
-      "date": "2026-10-06T21:43:29+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add diamond rank emblem",
-      "summary": "Add diamond rank emblem"
-    },
-    {
-      "sha": "0a6e35ffcba17ef252b3aeadf0267beffa7f1de3",
-      "date": "2026-10-06T21:43:15+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add obsidian rank emblem",
-      "summary": "Add obsidian rank emblem"
-    },
-    {
-      "sha": "e84f44ad1a889a0ce9e24b41dc7c8086665ae67f",
-      "date": "2026-10-06T21:43:13+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add onyx rank emblem",
-      "summary": "Add onyx rank emblem"
-    },
-    {
-      "sha": "df81c78ef136165be62269dc74e854ec2bd72094",
-      "date": "2026-10-06T21:43:11+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add garnet rank emblem",
-      "summary": "Add garnet rank emblem"
     }
   ]
 }
