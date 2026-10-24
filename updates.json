@@ -1,6 +1,69 @@
 {
   "entries": [
     {
+      "sha": "838680fb5f64f00e3f085b3a4bc38142dc4a359a",
+      "date": "2026-10-24T16:29:34+01:00",
+      "category": "Player Profiles",
+      "title": "Fix player comparison event listener syntax",
+      "summary": "Fix player comparison event listener syntax"
+    },
+    {
+      "sha": "df430bfaaaf8f607141c130d808bee2b1d660d11",
+      "date": "2026-10-24T16:29:25+01:00",
+      "category": "Ranked Ratings",
+      "title": "Add scrim and late-game leaderboard options",
+      "summary": "Add scrim and late-game leaderboard options"
+    },
+    {
+      "sha": "d506a6438028eb226664989be4a3ea4fe24343cd",
+      "date": "2026-10-24T16:29:23+01:00",
+      "category": "Ranked Ratings",
+      "title": "Improve player lookup and add match-type leaderboard filters",
+      "summary": "Improve player lookup and add match-type leaderboard filters"
+    },
+    {
+      "sha": "8bdb3725447dba52a62a5af48c3f25aba39ae9f7",
+      "date": "2026-10-24T16:29:04+01:00",
+      "category": "Interface & Design",
+      "title": "Style player comparisons, RP history and verified matches",
+      "summary": "Style player comparisons, RP history and verified matches"
+    },
+    {
+      "sha": "54d8c8030cd906e88b0e0ae329fdbe6e9dd4bdf6",
+      "date": "2026-10-24T16:28:57+01:00",
+      "category": "Match Tracking",
+      "title": "Add admin-only match verification endpoint",
+      "summary": "Add admin-only match verification endpoint"
+    },
+    {
+      "sha": "40c989f4d9eabb099960e1a620e2bc9524996f1e",
+      "date": "2026-10-24T16:28:52+01:00",
+      "category": "Ranked Ratings",
+      "title": "Add player RP progression chart and match tracker styling",
+      "summary": "Add player RP progression chart and match tracker styling"
+    },
+    {
+      "sha": "dd408a3586b5ed88c370d90bb0207084c46e72fa",
+      "date": "2026-10-24T16:28:46+01:00",
+      "category": "Match Tracking",
+      "title": "Add searchable opponent history and verified match filter",
+      "summary": "Add searchable opponent history and verified match filter"
+    },
+    {
+      "sha": "e684988141f8cd4bb304034996d19d4b1c031ec7",
+      "date": "2026-10-24T16:28:39+01:00",
+      "category": "Player Profiles",
+      "title": "Add CRIB player comparison and head-to-head stats",
+      "summary": "Add CRIB player comparison and head-to-head stats"
+    },
+    {
+      "sha": "7b3d4242c6fd5a0b0fe22676afd4a9148368bdfc",
+      "date": "2026-10-24T16:28:30+01:00",
+      "category": "Player Profiles",
+      "title": "Wire CRIB player comparison and secure verification controls",
+      "summary": "Wire CRIB player comparison and secure verification controls"
+    },
+    {
       "sha": "12f69dcd1c81e422880fd641647453a10c019c66",
       "date": "2026-10-24T16:28:01+01:00",
       "category": "Interface & Design",
@@ -475,62 +538,6 @@
       "category": "Interface & Design",
       "title": "Optimize CRIB dashboard and add quality of life tools",
       "summary": "Optimize CRIB dashboard and add quality of life tools"
-    },
-    {
-      "sha": "a09e9c9a64925941f8ed231423ffac077a5981d4",
-      "date": "2026-10-06T20:10:46+01:00",
-      "category": "Platform & Data",
-      "title": "Make CRIB data persistent and add export endpoint",
-      "summary": "Make CRIB data persistent and add export endpoint"
-    },
-    {
-      "sha": "0e1c89d3736af81e752480fba049feb53f39eaea",
-      "date": "2026-10-06T20:06:14+01:00",
-      "category": "Platform & Data",
-      "title": "Document CRIB setup and server architecture",
-      "summary": "Document CRIB setup and server architecture"
-    },
-    {
-      "sha": "8b632c41d317a594d09c3ea82a07457e0a1775c5",
-      "date": "2026-10-06T20:05:59+01:00",
-      "category": "Interface & Design",
-      "title": "Add CRIB frontend script.js",
-      "summary": "Add CRIB frontend script.js"
-    },
-    {
-      "sha": "8bfafb324b738781d92453f2dad794f5c9280762",
-      "date": "2026-10-06T20:05:57+01:00",
-      "category": "Interface & Design",
-      "title": "Add CRIB frontend style.css",
-      "summary": "Add CRIB frontend style.css"
-    },
-    {
-      "sha": "e76354104d73a288b964cb02ba4a92a3804e41da",
-      "date": "2026-10-06T20:05:24+01:00",
-      "category": "Platform & Data",
-      "title": "Add CRIB data.json",
-      "summary": "Add CRIB data.json"
-    },
-    {
-      "sha": "fcec79f2d06387e7b2cea91809d7ac5a81ddfc29",
-      "date": "2026-10-06T20:04:05+01:00",
-      "category": "Platform & Data",
-      "title": "Add CRIB server.js",
-      "summary": "Add CRIB server.js"
-    },
-    {
-      "sha": "207b7ac9002f84968cca9168f2323f517289b77c",
-      "date": "2026-10-06T20:04:02+01:00",
-      "category": "Other",
-      "title": "Add CRIB package.json",
-      "summary": "Add CRIB package.json"
-    },
-    {
-      "sha": "7ae0d83ea2ae54736b6ffe9a01ca1dac1546674d",
-      "date": "2026-10-06T19:58:58+01:00",
-      "category": "Other",
-      "title": "Add files via upload",
-      "summary": "Add files via upload"
     }
   ]
 }
