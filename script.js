@@ -323,7 +323,8 @@ $("openProfileBtn")?.addEventListener("click",()=>openPage("profile"));$("recent
 $("scrimModeSelect")?.addEventListener("change",updateModeFields);
 ["scrimSearch","scrimFilterMode","scrimFilterKit","scrimFilterResult","scrimFilterVerification"].forEach(id=>$(id)?.addEventListener("input",renderMatches));
 ["kitSearch","kitClassFilter","kitTierFilter","kitStatusFilter","kitSort"].forEach(id=>$(id)?.addEventListener("input",renderKits));
-["compareKitA","compareKitB"].forEach(id=>$(id)?.addEventListener("change",renderCompare));\n["comparePlayerA","comparePlayerB"].forEach(id=>$(id)?.addEventListener("change",renderPlayerCompare));
+["compareKitA","compareKitB"].forEach(id=>$(id)?.addEventListener("change",renderCompare));
+["comparePlayerA","comparePlayerB"].forEach(id=>$(id)?.addEventListener("change",renderPlayerCompare));
 $("playerSearchInput")?.addEventListener("input",renderPlayers);$("leaderboardFilter")?.addEventListener("change",renderLeaderboard);
 document.querySelectorAll("[data-chart-range]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-chart-range]").forEach(x=>x.classList.remove("active"));b.classList.add("active");drawChart()}));
 document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".modal-backdrop.open").forEach(x=>x.classList.remove("open"));if(e.ctrlKey&&e.key.toLowerCase()==="k"){e.preventDefault();openPage("players");$("playerSearchInput")?.focus()}if(e.ctrlKey&&e.key.toLowerCase()==="n"){e.preventDefault();show("scrimModal")}});
