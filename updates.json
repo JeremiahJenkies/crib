@@ -1,6 +1,20 @@
 {
   "entries": [
     {
+      "sha": "460a38a88a31f5026ae5e2ea45680db7c065b84e",
+      "date": "2026-10-31T03:25:50Z",
+      "category": "Other",
+      "title": "Open the CRIB admin page after Discord OAuth sign-in",
+      "summary": "Open the CRIB admin page after Discord OAuth sign-in"
+    },
+    {
+      "sha": "0aaf895a7329ce9fd269958e2dacf8b859ada7ff",
+      "date": "2026-10-31T03:25:48Z",
+      "category": "Other",
+      "title": "Redirect successful Discord admin sign-ins to CRIB admin page",
+      "summary": "Redirect successful Discord admin sign-ins to CRIB admin page"
+    },
+    {
       "sha": "b63462a075c0684bae2092cc32d97446743091a7",
       "date": "2026-10-31T03:25:36Z",
       "category": "Other",
@@ -461,27 +475,6 @@
       "category": "Ranked Ratings",
       "title": "Refresh CRIB ranked configuration and kit metadata",
       "summary": "Refresh CRIB ranked configuration and kit metadata"
-    },
-    {
-      "sha": "10fbb7397441e7d811dd44a3a2214bc38e3b9962",
-      "date": "2026-10-06T21:45:27+01:00",
-      "category": "Ranked Ratings",
-      "title": "Harden CRIB backend and fix ranked scoring system",
-      "summary": "Harden CRIB backend and fix ranked scoring system"
-    },
-    {
-      "sha": "407b70bec60e1701dcb7ab2bd373538824646557",
-      "date": "2026-10-06T21:45:08+01:00",
-      "category": "Interface & Design",
-      "title": "Rewrite CRIB frontend logic and remove object rendering bugs",
-      "summary": "Rewrite CRIB frontend logic and remove object rendering bugs"
-    },
-    {
-      "sha": "20289f6cec15cf708c602cadaeb83cb78bf4ef10",
-      "date": "2026-10-06T21:44:28+01:00",
-      "category": "Interface & Design",
-      "title": "Redesign CRIB with polished competitive UI",
-      "summary": "Redesign CRIB with polished competitive UI"
     }
   ]
 }
