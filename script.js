@@ -1,5 +1,5 @@
 const API="/api";
-let players=[],kits=[],matches=[],config={},active=null,adminToken="",updateEntries=[];
+let players=[],kits=[],matches=[],config={},active=null,adminAuthenticated=false,adminUser=null,updateEntries=[];
 const RANKS=["Coal","Iron","Copper","Quartz","Amethyst","Jade","Topaz","Opal","Pearl","Sapphire","Emerald","Ruby","Garnet","Onyx","Obsidian","Diamond","Mythic","Astral","Celestial","Radiant"];
 const DIVS=["IV","III","II","I"];
 const $=id=>document.getElementById(id);
@@ -43,6 +43,7 @@ function toast(msg){
 async function refresh(){
   const [p,k,c,m]=await Promise.all([api("/players"),api("/kits"),api("/config"),api("/matches")]);
   players=p.players||[];kits=k.kits||[];config=c.config||{};matches=m.matches||[];
+  const admin=await api("/admin/session").catch(()=>({authenticated:false,user:null}));adminAuthenticated=Boolean(admin.authenticated);adminUser=admin.user||null;updateAdminAuthUI();
   active=players.find(x=>x.id===localStorage.getItem("cribActivePlayer"))||players[0]||null;
   if(active)saveActive();
   renderAll();populateKits();drawChart();drawAnalytics();loadUpdateTree().catch(()=>{text("updateCount","History unavailable");text("updateTree","Could not load updates.json.")});
@@ -116,7 +117,7 @@ function renderMatches(){
   tb.innerHTML=arr.map(m=>{
     const opponents=[...(m.opponents||[])];if(m.opponent&&!opponents.includes(m.opponent))opponents.unshift(m.opponent);
     const verified=m.verified===true,opponentText=opponents.length?opponents.join(", "):"Not recorded";
-    const verifyAction=!verified&&adminToken?'<button class="verify-match-btn" onclick="verifyMatch(\''+esc(m.id)+'\')">Verify</button>':"";
+    const verifyAction=!verified&&adminAuthenticated?'<button class="verify-match-btn" onclick="verifyMatch(\''+esc(m.id)+'\')">Verify</button>':"";
     return '<tr><td><b>#'+esc(String(m.id).slice(-7))+'</b><small class="muted-line">'+esc(fmtDate(m.createdAt))+'</small></td><td>'+esc(modeName(m.mode||m.type))+'</td><td>'+esc(opponentText)+'</td><td>'+esc(m.kit||"—")+'</td><td class="'+(m.result==="Win"?"rp-good":"rp-bad")+'"><b>'+esc(m.result||"—")+'</b></td><td>'+num(m.scoreFor)+' — '+num(m.scoreAgainst)+'</td><td class="'+(m.rp>=0?"rp-good":"rp-bad")+'">'+(m.rp>=0?"+":"")+num(m.rp)+'</td><td><span class="verification-badge '+(verified?"verified":"unverified")+'">'+(verified?"✓ Verified":"Unverified")+'</span>'+verifyAction+'</td><td>'+esc(fmtDate(m.createdAt))+'</td></tr>';
   }).join("")||'<tr><td colspan="9" class="muted-line">No matches match those filters.</td></tr>';
 }
@@ -293,21 +294,32 @@ function openResult(d){
 }
 async function selectPlayer(id,page="dashboard"){active=players.find(p=>p.id===id)||active;saveActive();renderAll();openPage(page)}
 window.selectPlayer=selectPlayer;
-window.verifyMatch=async id=>{if(!adminToken)return toast("Unlock admin first to verify matches.");try{await adminCall("/admin/matches/"+encodeURIComponent(id)+"/verification",{verified:true});await refresh();toast("Match verified.");}catch(e){toast(e.message)}};
-async function adminCall(path,body){return api(path,{method:"PUT",headers:{"x-admin-token":adminToken},body:JSON.stringify(body)})}
+window.verifyMatch=async id=>{if(!adminAuthenticated)return toast("Sign in with Discord to verify matches.");try{await adminCall("/admin/matches/"+encodeURIComponent(id)+"/verification",{verified:true});await refresh();toast("Match verified.");}catch(e){toast(e.message)}};
+async function adminCall(path,body){return api(path,{method:"PUT",body:JSON.stringify(body)})}
 function renderAdmin(){
   const f=$("serverConfigFields");if(f)f.innerHTML=["baseWin","baseLoss","noKitMultiplier","minKitMultiplier","maxKitMultiplier","streakCap"].map(k=>`<div class="config-item"><label>${prettyKey(k)}<input id="cfg-${k}" type="number" step="0.01" value="${esc(config[k]??0)}"></label></div>`).join("");
   const tb=$("adminKitsTableBody");if(!tb)return;
   tb.innerHTML=kits.map((k,i)=>`<tr><td><b>${esc(k.name)}</b></td><td>${esc(k.class)}</td><td><input id="power-${i}" type="number" min="0" max="100" value="${num(k.power)}"></td><td><input id="meta-${i}" type="number" step=".1" value="${num(k.metaAdjustment||0)}"></td><td>${esc(k.tier||"—")}</td><td>×${num(k.rpMultiplier).toFixed(3)}</td><td>${k.enabled?"Enabled":"Disabled"}</td><td><button class="ghost" onclick="saveKit(${i})">Save</button></td></tr>`).join("");
 }
 window.saveKit=async i=>{
-  if(!adminToken)return toast("Unlock admin first.");const k=kits[i];try{await adminCall("/admin/kits",{name:k.name,powerScore:num($("power-"+i).value),metaAdjustment:num($("meta-"+i).value)});await refresh();toast(k.name+" balanced")}catch(e){toast(e.message)}
+  if(!adminAuthenticated)return toast("Sign in with Discord first.");const k=kits[i];try{await adminCall("/admin/kits",{name:k.name,powerScore:num($("power-"+i).value),metaAdjustment:num($("meta-"+i).value)});await refresh();toast(k.name+" balanced")}catch(e){toast(e.message)}
 };
 async function unlockAdmin(){
-  adminToken=$("adminTokenInput").value;try{await api("/config");await adminCall("/admin/config",{});text("adminStatus","Unlocked · token accepted");renderMatches();toast("Admin unlocked")}catch(e){text("adminStatus","Locked · "+e.message)}
+  try{const d=await api("/admin/session");adminAuthenticated=Boolean(d.authenticated);adminUser=d.user||null;updateAdminAuthUI();if(adminAuthenticated){renderMatches();toast("Discord admin authenticated")}}
+  catch(e){adminAuthenticated=false;adminUser=null;updateAdminAuthUI();text("adminStatus","Locked · "+e.message)}
+}
+function updateAdminAuthUI(){
+  const login=$("adminLoginBtn"),logout=$("adminLogoutBtn");
+  if(login)login.hidden=adminAuthenticated;
+  if(logout)logout.hidden=!adminAuthenticated;
+  text("adminStatus",adminAuthenticated?"Unlocked · "+(adminUser?.globalName||adminUser?.username||"Discord admin"):"Locked · approved Discord account required");
+}
+async function logoutAdmin(){
+  try{await api("/admin/logout",{method:"POST"});adminAuthenticated=false;adminUser=null;updateAdminAuthUI();renderMatches();toast("Signed out of CRIB admin")}
+  catch(e){toast(e.message)}
 }
 async function saveConfig(){
-  if(!adminToken)return toast("Unlock admin first.");const b={};["baseWin","baseLoss","noKitMultiplier","minKitMultiplier","maxKitMultiplier","streakCap"].forEach(k=>b[k]=num($("cfg-"+k).value));try{await adminCall("/admin/config",b);await refresh();toast("Ranked configuration saved")}catch(e){toast(e.message)}
+  if(!adminAuthenticated)return toast("Sign in with Discord first.");const b={};["baseWin","baseLoss","noKitMultiplier","minKitMultiplier","maxKitMultiplier","streakCap"].forEach(k=>b[k]=num($("cfg-"+k).value));try{await adminCall("/admin/config",b);await refresh();toast("Ranked configuration saved")}catch(e){toast(e.message)}
 }
 document.addEventListener("click",e=>{
   const n=e.target.closest(".nav");if(n)openPage(n.dataset.page);
@@ -318,7 +330,7 @@ $("activePlayerSelect")?.addEventListener("change",e=>selectPlayer(e.target.valu
 ["quickAddBtn","dashboardAddMatchBtn","addScrimBtn","profileRecordBtn"].forEach(id=>$(id)?.addEventListener("click",()=>show("scrimModal")));
 $("quickAddLGBtn")?.addEventListener("click",()=>show("lateGameModal"));$("openLateGameBtn")?.addEventListener("click",()=>show("lateGameModal"));
 $("openWinstreakBtn")?.addEventListener("click",()=>{show("scrimModal");$("scrimModeSelect").value="WINSTREAK_1V1";updateModeFields()});
-$("createPlayerSubmit")?.addEventListener("click",createPlayer);$("saveScrimBtn")?.addEventListener("click",saveScrim);$("saveLateGameBtn")?.addEventListener("click",saveLG);$("adminLoginBtn")?.addEventListener("click",unlockAdmin);$("saveServerConfigBtn")?.addEventListener("click",saveConfig);
+$("createPlayerSubmit")?.addEventListener("click",createPlayer);$("saveScrimBtn")?.addEventListener("click",saveScrim);$("saveLateGameBtn")?.addEventListener("click",saveLG);$("adminLoginBtn")?.addEventListener("click",()=>{window.location.href="/api/admin/login"});$("adminLogoutBtn")?.addEventListener("click",logoutAdmin);$("saveServerConfigBtn")?.addEventListener("click",saveConfig);
 $("openProfileBtn")?.addEventListener("click",()=>openPage("profile"));$("recentMatchesBtn")?.addEventListener("click",()=>openPage("scrims"));$("leaderboardOpenBtn")?.addEventListener("click",()=>openPage("leaderboards"));$("globalSearchBtn")?.addEventListener("click",()=>{openPage("players");$("playerSearchInput")?.focus()});
 $("scrimModeSelect")?.addEventListener("change",updateModeFields);
 ["scrimSearch","scrimFilterMode","scrimFilterKit","scrimFilterResult","scrimFilterVerification"].forEach(id=>$(id)?.addEventListener("input",renderMatches));
