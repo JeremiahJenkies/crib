@@ -20,9 +20,23 @@ The browser never calculates authoritative RP. The server handles player creatio
 
 Do not open index.html directly with file:// because the API is served by the Node server.
 
-## Admin
+## Admin authentication (Discord OAuth2)
 
-Set the environment variable `CRIB_ADMIN_TOKEN` before starting the server. Admin configuration and match verification remain locked if it is not set. Only an administrator using this token can mark a match as verified; submitted match data cannot verify itself. Never commit a real admin token to GitHub.
+CRIB admin access uses Discord OAuth2 identity verification. Only these Discord user IDs are allowed by default:
+
+- `1365035459465580585` — casperspishogue / CRIB username `h3lixsquared`
+- `1333892338166005830` — duskydemiseee / CRIB username `tellmeishouldmoveon`
+
+The server checks immutable Discord user IDs returned by Discord's `/users/@me` endpoint; displayed usernames are informational only. Admin sessions are stored server-side and use an HttpOnly, SameSite=Lax cookie with a 12-hour lifetime. The session store is in memory, so users must sign in again after a server restart.
+
+Configure these environment variables on the hosting provider (never commit the client secret):
+
+- `CRIB_DISCORD_CLIENT_ID` — Discord application client ID
+- `CRIB_DISCORD_CLIENT_SECRET` — Discord application client secret
+- `CRIB_DISCORD_REDIRECT_URI` — exact OAuth2 redirect URL, e.g. `https://YOUR-DOMAIN/api/admin/callback`
+- `CRIB_DISCORD_ADMIN_IDS` — optional comma-separated override for the approved Discord IDs
+
+In the Discord Developer Portal, add the exact value of `CRIB_DISCORD_REDIRECT_URI` to the application's OAuth2 Redirects. The OAuth2 scope required is `identify`. After configuring the environment variables, redeploy CRIB. Admin configuration, kit balancing, and match verification are then available only to the approved Discord accounts.
 
 ## Current server features
 
