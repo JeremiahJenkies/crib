@@ -5,7 +5,13 @@ import crypto from "node:crypto";
 import { URL } from "node:url";
 
 const PORT=process.env.PORT||3000;
-const ADMIN_TOKEN=process.env.CRIB_ADMIN_TOKEN||"";
+const DISCORD_CLIENT_ID=process.env.CRIB_DISCORD_CLIENT_ID||"";
+const DISCORD_CLIENT_SECRET=process.env.CRIB_DISCORD_CLIENT_SECRET||"";
+const DISCORD_REDIRECT_URI=process.env.CRIB_DISCORD_REDIRECT_URI||"";
+const ADMIN_DISCORD_IDS=new Set((process.env.CRIB_DISCORD_ADMIN_IDS||"1365035459465580585,1333892338166005830").split(",").map(x=>x.trim()).filter(Boolean));
+const ADMIN_SESSION_TTL=12*60*60*1000;
+const adminSessions=new Map();
+const oauthStates=new Map();
 const DATA_FILE=path.resolve(process.env.CRIB_DATA_FILE||path.join(process.env.CRIB_DATA_DIR||process.cwd(),"data.json"));
 const BACKUP_FILE=DATA_FILE+".bak";
 const RANKS=["Coal","Iron","Copper","Quartz","Amethyst","Jade","Topaz","Opal","Pearl","Sapphire","Emerald","Ruby","Garnet","Onyx","Obsidian","Diamond","Mythic","Astral","Celestial","Radiant"];
@@ -174,6 +180,27 @@ async function loadState(){
 }
 function json(res,status,data){res.writeHead(status,{"content-type":"application/json; charset=utf-8","access-control-allow-origin":"*","access-control-allow-methods":"GET,POST,PUT,OPTIONS","access-control-allow-headers":"content-type,x-admin-token"});res.end(JSON.stringify(data))}
 async function body(req){return await new Promise((resolve,reject)=>{let s="";req.on("data",c=>s+=c);req.on("end",()=>{try{resolve(s?JSON.parse(s):{})}catch(e){reject(e)}});req.on("error",reject)})}
+function redirect(res,location,status=302){res.writeHead(status,{location,"cache-control":"no-store"});res.end()}
+function cookies(req){
+ const out={};
+ for(const part of String(req.headers.cookie||"").split(";")){
+  const i=part.indexOf("=");if(i<0)continue;
+  out[part.slice(0,i).trim()]=decodeURIComponent(part.slice(i+1).trim());
+ }
+ return out;
+}
+function getAdminSession(req){
+ const sid=cookies(req).crib_admin_session,session=sid?adminSessions.get(sid):null;
+ if(!session)return null;
+ if(session.expiresAt<Date.now()||!ADMIN_DISCORD_IDS.has(session.user.id)){adminSessions.delete(sid);return null}
+ return session;
+}
+function adminCookie(value,maxAge){
+ const secure=process.env.NODE_ENV==="production"||process.env.CRIB_COOKIE_SECURE==="true";
+ return "crib_admin_session="+encodeURIComponent(value)+"; HttpOnly; Path=/; SameSite=Lax; Max-Age="+maxAge+(secure?"; Secure":"");
+}
+function discordOAuthConfigured(){return Boolean(DISCORD_CLIENT_ID&&DISCORD_CLIENT_SECRET&&DISCORD_REDIRECT_URI)}
+
 
 await loadState();
 const server=http.createServer(async(req,res)=>{
@@ -181,6 +208,43 @@ const server=http.createServer(async(req,res)=>{
  const u=new URL(req.url,"http://localhost");
  try{
   if(u.pathname==="/api/health")return json(res,200,{ok:true,service:"CRIB",players:state.players.length,matches:state.matches.length});
+  if(u.pathname==="/api/admin/session"&&req.method==="GET"){
+   const session=getAdminSession(req);
+   return json(res,200,{authenticated:Boolean(session),user:session?{id:session.user.id,username:session.user.username,globalName:session.user.global_name||session.user.username}:null});
+  }
+  if(u.pathname==="/api/admin/login"&&req.method==="GET"){
+   if(!discordOAuthConfigured())return json(res,503,{error:"Discord OAuth is not configured on the server."});
+   const stateToken=crypto.randomBytes(24).toString("hex");
+   oauthStates.set(stateToken,{createdAt:Date.now()});
+   for(const [key,value] of oauthStates)if(value.createdAt<Date.now()-10*60*1000)oauthStates.delete(key);
+   const params=new URLSearchParams({client_id:DISCORD_CLIENT_ID,redirect_uri:DISCORD_REDIRECT_URI,response_type:"code",scope:"identify",state:stateToken,prompt:"consent"});
+   return redirect(res,"https://discord.com/oauth2/authorize?"+params.toString());
+  }
+  if(u.pathname==="/api/admin/callback"&&req.method==="GET"){
+   const stateToken=u.searchParams.get("state")||"",savedState=oauthStates.get(stateToken);
+   oauthStates.delete(stateToken);
+   if(!savedState||savedState.createdAt<Date.now()-10*60*1000)return redirect(res,"/?admin_error=invalid_state");
+   if(u.searchParams.get("error")||!u.searchParams.get("code"))return redirect(res,"/?admin_error=discord_denied");
+   if(!discordOAuthConfigured())return redirect(res,"/?admin_error=oauth_not_configured");
+   try{
+    const tokenResponse=await fetch("https://discord.com/api/oauth2/token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:DISCORD_CLIENT_ID,client_secret:DISCORD_CLIENT_SECRET,grant_type:"authorization_code",code:u.searchParams.get("code"),redirect_uri:DISCORD_REDIRECT_URI})});
+    if(!tokenResponse.ok)throw new Error("Discord token exchange failed");
+    const tokenData=await tokenResponse.json();
+    const userResponse=await fetch("https://discord.com/api/users/@me",{headers:{authorization:"Bearer "+tokenData.access_token}});
+    if(!userResponse.ok)throw new Error("Discord identity lookup failed");
+    const discordUser=await userResponse.json();
+    if(!ADMIN_DISCORD_IDS.has(String(discordUser.id)))return redirect(res,"/?admin_error=not_admin");
+    const sid=crypto.randomBytes(32).toString("hex");
+    adminSessions.set(sid,{user:{id:String(discordUser.id),username:String(discordUser.username||""),global_name:String(discordUser.global_name||"")},expiresAt:Date.now()+ADMIN_SESSION_TTL});
+    res.writeHead(302,{location:"/admin","set-cookie":adminCookie(sid,Math.floor(ADMIN_SESSION_TTL/1000)),"cache-control":"no-store"});
+    return res.end();
+   }catch(error){console.error("Discord OAuth callback failed:",error.message);return redirect(res,"/?admin_error=oauth_failed")}
+  }
+  if(u.pathname==="/api/admin/logout"&&req.method==="POST"){
+   const sid=cookies(req).crib_admin_session;if(sid)adminSessions.delete(sid);
+   res.writeHead(200,{"content-type":"application/json; charset=utf-8","set-cookie":adminCookie("",0),"cache-control":"no-store"});
+   return res.end(JSON.stringify({ok:true}));
+  }
   if(u.pathname==="/api/players"&&req.method==="GET")return json(res,200,{players:state.players.map(publicPlayer)});
   if(u.pathname==="/api/kits"&&req.method==="GET")return json(res,200,{kits:state.kits,config:state.config});
   if(u.pathname==="/api/config"&&req.method==="GET")return json(res,200,{config:state.config,ranks:RANKS,divisions:DIVS});
@@ -257,18 +321,18 @@ const server=http.createServer(async(req,res)=>{
   if(u.pathname==="/api/matches"&&req.method==="GET"){const pid=u.searchParams.get("playerId");return json(res,200,{matches:state.matches.filter(m=>!pid||m.playerId===pid).slice().reverse()})}
   const verifyMatchPath=u.pathname.match(/^\/api\/admin\/matches\/([^/]+)\/verification$/);
   if(verifyMatchPath&&req.method==="PUT"){
-   if(!ADMIN_TOKEN||req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Set CRIB_ADMIN_TOKEN on the server and provide the admin token."});
+   if(!getAdminSession(req))return json(res,403,{error:"Sign in with an approved Discord admin account."});
    const matchId=decodeURIComponent(verifyMatchPath[1]),match=state.matches.find(m=>m.id===matchId);
    if(!match)return json(res,404,{error:"Match not found."});
    const b=await body(req);match.verified=Boolean(b.verified);match.verifiedAt=match.verified?new Date().toISOString():null;
    await saveState();return json(res,200,{match});
   }
   if(u.pathname==="/api/admin/config"&&req.method==="PUT"){
-   if(!ADMIN_TOKEN||req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Set CRIB_ADMIN_TOKEN on the server and provide the admin token."});
+   if(!getAdminSession(req))return json(res,403,{error:"Sign in with an approved Discord admin account."});
    Object.assign(state.config,await body(req));await saveState();return json(res,200,{config:state.config});
   }
   if(u.pathname==="/api/admin/kits"&&req.method==="PUT"){
-   if(!ADMIN_TOKEN||req.headers["x-admin-token"]!==ADMIN_TOKEN)return json(res,403,{error:"Set CRIB_ADMIN_TOKEN on the server and provide the admin token."});
+   if(!getAdminSession(req))return json(res,403,{error:"Sign in with an approved Discord admin account."});
    const b=await body(req),k=kit(b.name);if(!k)return json(res,404,{error:"Kit not found."});Object.assign(k,b);k.power=Number(k.powerScore??k.power??0);k.rpMultiplier=kitMultiplierFor(k);await saveState();return json(res,200,{kit:k});
   }
   if(req.method==="GET"&&!u.pathname.startsWith("/api/")){
