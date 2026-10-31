@@ -236,7 +236,7 @@ const server=http.createServer(async(req,res)=>{
     if(!ADMIN_DISCORD_IDS.has(String(discordUser.id)))return redirect(res,"/?admin_error=not_admin");
     const sid=crypto.randomBytes(32).toString("hex");
     adminSessions.set(sid,{user:{id:String(discordUser.id),username:String(discordUser.username||""),global_name:String(discordUser.global_name||"")},expiresAt:Date.now()+ADMIN_SESSION_TTL});
-    res.writeHead(302,{location:"/admin","set-cookie":adminCookie(sid,Math.floor(ADMIN_SESSION_TTL/1000)),"cache-control":"no-store"});
+    res.writeHead(302,{location:"/?page=admin","set-cookie":adminCookie(sid,Math.floor(ADMIN_SESSION_TTL/1000)),"cache-control":"no-store"});
     return res.end();
    }catch(error){console.error("Discord OAuth callback failed:",error.message);return redirect(res,"/?admin_error=oauth_failed")}
   }
