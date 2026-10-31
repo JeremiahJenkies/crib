@@ -47,6 +47,7 @@ async function refresh(){
   active=players.find(x=>x.id===localStorage.getItem("cribActivePlayer"))||players[0]||null;
   if(active)saveActive();
   renderAll();populateKits();drawChart();drawAnalytics();loadUpdateTree().catch(()=>{text("updateCount","History unavailable");text("updateTree","Could not load updates.json.")});
+  if(new URLSearchParams(window.location.search).get("page")==="admin")openPage("admin");
   text("serverStatus","ONLINE");$("statusDot")?.style.setProperty("background","var(--good)");
 }
 function renderAll(){renderPlayerSwitch();renderPlayer();renderRecent();renderMatches();renderPlayers();renderKits();renderCompare();renderPlayerCompare();renderLeaderboard();renderLate();renderWinstreak();renderStats();renderAdmin();renderUpdateTree();updateModeFields()}
