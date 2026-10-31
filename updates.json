@@ -1,6 +1,34 @@
 {
   "entries": [
     {
+      "sha": "b63462a075c0684bae2092cc32d97446743091a7",
+      "date": "2026-10-31T03:25:36Z",
+      "category": "Other",
+      "title": "Document Discord OAuth2 admin setup and approved accounts",
+      "summary": "Document Discord OAuth2 admin setup and approved accounts"
+    },
+    {
+      "sha": "0f6c18ef1e544ee3527eaf9079268369346d12d3",
+      "date": "2026-10-31T03:25:34Z",
+      "category": "Other",
+      "title": "Replace admin token form with Discord sign-in",
+      "summary": "Replace admin token form with Discord sign-in"
+    },
+    {
+      "sha": "7715617c77f6ae7d6fbe49e174e0833a59e52fda",
+      "date": "2026-10-31T03:25:32Z",
+      "category": "Interface & Design",
+      "title": "Connect CRIB admin UI to Discord OAuth2 sessions",
+      "summary": "Connect CRIB admin UI to Discord OAuth2 sessions"
+    },
+    {
+      "sha": "f16104c96c58e9c8cb061871904815bd999694a0",
+      "date": "2026-10-31T03:25:30Z",
+      "category": "Other",
+      "title": "Replace shared admin token with Discord OAuth2 admin sessions",
+      "summary": "Replace shared admin token with Discord OAuth2 admin sessions"
+    },
+    {
       "sha": "3b2488b3b89374025e2248a04f6d91092ac5260e",
       "date": "2026-10-24T17:23:23+01:00",
       "category": "Interface & Design",
@@ -454,41 +482,6 @@
       "category": "Interface & Design",
       "title": "Redesign CRIB with polished competitive UI",
       "summary": "Redesign CRIB with polished competitive UI"
-    },
-    {
-      "sha": "806bf1f05f2c9a6ab40cdcb2bae5b7506ff345b1",
-      "date": "2026-10-06T21:44:05+01:00",
-      "category": "Interface & Design",
-      "title": "Overhaul CRIB interface and ranked dashboard",
-      "summary": "Overhaul CRIB interface and ranked dashboard"
-    },
-    {
-      "sha": "e89b16dd9b7ff7140de431e6221a851b9d8026df",
-      "date": "2026-10-06T21:43:37+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add radiant rank emblem",
-      "summary": "Add radiant rank emblem"
-    },
-    {
-      "sha": "f17c172577e6253cd20c810b417a2fb8a77a71bc",
-      "date": "2026-10-06T21:43:35+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add celestial rank emblem",
-      "summary": "Add celestial rank emblem"
-    },
-    {
-      "sha": "cb2ddbf8ec58fcb0854a98bb08b89a4533c64779",
-      "date": "2026-10-06T21:43:33+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add astral rank emblem",
-      "summary": "Add astral rank emblem"
-    },
-    {
-      "sha": "74a14dd75b5aa62346bcb497ecc087413c3c02a7",
-      "date": "2026-10-06T21:43:31+01:00",
-      "category": "Ranked Ratings",
-      "title": "Add mythic rank emblem",
-      "summary": "Add mythic rank emblem"
     }
   ]
 }
